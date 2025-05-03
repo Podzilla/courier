@@ -1,0 +1,35 @@
+services:
+  mongodb:
+    image: mongo:6.0
+    container_name: mongodb
+    ports:
+      - "27018:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: courier
+      MONGO_INITDB_ROOT_PASSWORD: courier-password
+      MONGO_INITDB_DATABASE: courier-db
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - courier-network
+
+  courier-service:
+    build: .
+    container_name: courier-service
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_APPLICATION_JSON: '{
+                "spring.data.mongodb.uri" : "mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@mongodb:${MONGO_PORT}/${MONGO_DATABASE}?authSource=admin"
+              }'
+    depends_on:
+      - mongodb
+    networks:
+      - courier-network
+
+networks:
+  courier-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
