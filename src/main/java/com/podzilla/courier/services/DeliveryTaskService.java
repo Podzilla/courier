@@ -37,4 +37,12 @@ public class DeliveryTaskService {
         return deliveryTaskRepository.findByOrderId(orderId);
     }
 
+    public Optional<String> updateOtp(String id, String otp) {
+        DeliveryTask task = deliveryTaskRepository.findById(id).orElse(null);
+        if (task == null)
+            return Optional.empty();
+        task.setOtp(otp);
+        deliveryTaskRepository.save(task);
+        return Optional.of("Updated OTP");
+    }
 }

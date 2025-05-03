@@ -5,6 +5,7 @@ import com.podzilla.courier.models.DeliveryTask;
 import com.podzilla.courier.services.DeliveryTaskService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController
@@ -42,5 +43,10 @@ public class DeliveryTaskController {
     @GetMapping("/order/{orderId}")
     public ResponseEntity<List<DeliveryTask>> getDeliveryTasksByOrderId(@PathVariable String orderId) {
         return ResponseEntity.ok(deliveryTaskService.getDeliveryTasksByOrderId(orderId));
+    }
+
+    @PutMapping("/{id}/otp")
+    public ResponseEntity<String> updateOtp(@PathVariable String id, @RequestBody String otp) {
+        return deliveryTaskService.updateOtp(id, otp).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
     }
 }
