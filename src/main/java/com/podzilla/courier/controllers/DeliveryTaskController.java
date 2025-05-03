@@ -5,7 +5,10 @@ import com.podzilla.courier.models.DeliveryTask;
 import com.podzilla.courier.services.DeliveryTaskService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import javax.swing.text.html.Option;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/delivery-tasks")
@@ -15,6 +18,16 @@ public class DeliveryTaskController {
 
     public DeliveryTaskController(DeliveryTaskService deliveryTaskService) {
         this.deliveryTaskService = deliveryTaskService;
+    }
+
+    @PostMapping
+    public ResponseEntity<DeliveryTask> createDeliveryTask(@RequestBody DeliveryTask deliveryTask) {
+        return ResponseEntity.ok(deliveryTaskService.createDeliveryTask(deliveryTask));
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<Optional<DeliveryTask>> updateDeliveryTaskStatus(@PathVariable String id, @RequestBody DeliveryStatus status) {
+        return ResponseEntity.ok(deliveryTaskService.updateDeliveryTaskStatus(id,status));
     }
 
     @GetMapping

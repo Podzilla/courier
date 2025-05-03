@@ -17,6 +17,10 @@ public class DeliveryTaskService {
         this.deliveryTaskRepository = deliveryTaskRepository;
     }
 
+    public DeliveryTask createDeliveryTask(DeliveryTask deliveryTask) {
+        return deliveryTaskRepository.save(deliveryTask);
+    }
+
     public List<DeliveryTask> getAllDeliveryTasks() {
         return deliveryTaskRepository.findAll();
     }
@@ -37,4 +41,12 @@ public class DeliveryTaskService {
         return deliveryTaskRepository.findByOrderId(orderId);
     }
 
+    public Optional<DeliveryTask> updateDeliveryTaskStatus(String id, DeliveryStatus status) {
+        Optional<DeliveryTask> updatedDeliveryTask = deliveryTaskRepository.findById(id);
+        if (updatedDeliveryTask.isPresent()) {
+            updatedDeliveryTask.get().setStatus(status);
+            return Optional.of(deliveryTaskRepository.save(updatedDeliveryTask.get()));
+        }
+        return Optional.empty();
+    }
 }
