@@ -49,4 +49,9 @@ public class DeliveryTaskController {
     public ResponseEntity<String> updateOtp(@PathVariable String id, @RequestBody String otp) {
         return deliveryTaskService.updateOtp(id, otp).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
     }
+
+    @PutMapping("/{id}/otp-confirmation")
+    public ResponseEntity<String> confirmOTP(@PathVariable String id, @RequestBody String otp) {
+        return deliveryTaskService.confirmOTP(id, otp).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    }
 }

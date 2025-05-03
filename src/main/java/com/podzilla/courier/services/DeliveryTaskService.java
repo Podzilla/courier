@@ -4,6 +4,7 @@ import com.podzilla.courier.models.DeliveryStatus;
 import com.podzilla.courier.models.DeliveryTask;
 import com.podzilla.courier.repositories.DeliveryTaskRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
@@ -44,5 +45,16 @@ public class DeliveryTaskService {
         task.setOtp(otp);
         deliveryTaskRepository.save(task);
         return Optional.of("Updated OTP");
+    }
+
+    public Optional<String> confirmOTP(String id, String otp) {
+        DeliveryTask task = deliveryTaskRepository.findById(id).orElse(null);
+        if (task == null)
+            return Optional.empty();
+        if (task.getOtp().equals(otp)) {
+            task.setStatus(DeliveryStatus.ASSIGNED);
+        }
+        deliveryTaskRepository.save(task);
+        return Optional.of("Confirmed OTP");
     }
 }
