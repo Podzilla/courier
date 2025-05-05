@@ -16,7 +16,7 @@ public class CourierController {
         this.courierService = courierService;
     }
 
-    @GetMapping("/")
+    @GetMapping
     public ResponseEntity<List<Courier>> getAllCouriers() {
         return ResponseEntity.ok(courierService.getAllCouriers());
     }
