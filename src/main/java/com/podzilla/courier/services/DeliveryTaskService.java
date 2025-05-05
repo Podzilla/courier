@@ -51,10 +51,12 @@ public class DeliveryTaskService {
         DeliveryTask task = deliveryTaskRepository.findById(id).orElse(null);
         if (task == null)
             return Optional.empty();
+        String message = "Wrong OTP";
         if (task.getOtp().equals(otp)) {
-            task.setStatus(DeliveryStatus.ASSIGNED);
+            task.setStatus(DeliveryStatus.DELIVERED);
+            message = "OTP confirmed";
         }
         deliveryTaskRepository.save(task);
-        return Optional.of("Confirmed OTP");
+        return Optional.of(message);
     }
 }
