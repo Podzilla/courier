@@ -1,9 +1,6 @@
 package com.podzilla.courier.controllers;
 
-import com.podzilla.courier.dtos.delivery_tasks.CreateDeliveryTaskRequestDto;
-import com.podzilla.courier.dtos.delivery_tasks.DeliveryTaskResponseDto;
-import com.podzilla.courier.dtos.delivery_tasks.LocationUpdateDto;
-import com.podzilla.courier.dtos.delivery_tasks.UpdateDeliveryStatusRequestDto;
+import com.podzilla.courier.dtos.delivery_tasks.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.util.Pair;
@@ -80,6 +77,17 @@ public class DeliveryTaskController {
     public ResponseEntity<DeliveryTaskResponseDto> updateDeliveryTaskLocation(@PathVariable String id, @RequestBody LocationUpdateDto locationUpdateDto) {
         logger.info("Received request to update the location if delivery task with id {}", id);
         return ResponseEntity.ok(deliveryTaskService.updateDeliveryTaskLocation(id, locationUpdateDto.getLatitude(), locationUpdateDto.getLongitude()));
+    }
+
+    @PatchMapping("/{id}/cancel")
+    public ResponseEntity<CancelDeliveryTaskResponseDto> cancelDeliveryTask(@PathVariable String id, @RequestBody String cancellationReason) {
+        logger.info("Received request to cancel delivery task with id {}", id);
+        return ResponseEntity.ok(deliveryTaskService.cancelDeliveryTask(id, cancellationReason));
+    }
+
+    @PatchMapping("/{id}/rate")
+    public ResponseEntity<SubmitCourierRatingResponseDto> submitCourierRating(@PathVariable String id, @RequestBody SubmitCourierRatingRequestDto ratingDto) {
+        return ResponseEntity.ok(deliveryTaskService.submitCourierRating(id, ratingDto.getRating()));
     }
 
     @DeleteMapping("/{id}")

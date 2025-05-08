@@ -1,7 +1,9 @@
 package com.podzilla.courier.services;
 
+import com.podzilla.courier.dtos.delivery_tasks.CancelDeliveryTaskResponseDto;
 import com.podzilla.courier.dtos.delivery_tasks.CreateDeliveryTaskRequestDto;
 import com.podzilla.courier.dtos.delivery_tasks.DeliveryTaskResponseDto;
+import com.podzilla.courier.dtos.delivery_tasks.SubmitCourierRatingResponseDto;
 import com.podzilla.courier.mappers.DeliveryTaskMapper;
 import com.podzilla.courier.models.DeliveryStatus;
 import com.podzilla.courier.models.DeliveryTask;
@@ -10,6 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -30,14 +34,14 @@ public class DeliveryTaskService {
         DeliveryTask deliveryTask = DeliveryTaskMapper.toEntity(deliveryTaskRequestDto);
         DeliveryTask savedTask = deliveryTaskRepository.save(deliveryTask);
         logger.debug("Delivery task created with ID: {}", savedTask.getId());
-        return DeliveryTaskMapper.toResponseDto(savedTask);
+        return DeliveryTaskMapper.toCreateResponseDto(savedTask);
     }
 
     public List<DeliveryTaskResponseDto> getAllDeliveryTasks() {
         logger.info("Fetching all delivery tasks");
         List<DeliveryTaskResponseDto> deliveryTasks = deliveryTaskRepository.findAll()
                 .stream()
-                .map(DeliveryTaskMapper::toResponseDto)
+                .map(DeliveryTaskMapper::toCreateResponseDto)
                 .collect(Collectors.toList());
         logger.debug("Delivery tasks fetched: {}", deliveryTasks);
         return deliveryTasks;
@@ -51,14 +55,14 @@ public class DeliveryTaskService {
         } else {
             logger.debug("Delivery task not found with ID: {}", id);
         }
-        return deliveryTask.map(DeliveryTaskMapper::toResponseDto);
+        return deliveryTask.map(DeliveryTaskMapper::toCreateResponseDto);
     }
 
     public List<DeliveryTaskResponseDto> getDeliveryTasksByCourierId(String courierId) {
         logger.info("Fetching delivery tasks by courier ID: {}", courierId);
         List<DeliveryTaskResponseDto> deliveryTasks = deliveryTaskRepository.findByCourierId(courierId)
                 .stream()
-                .map(DeliveryTaskMapper::toResponseDto)
+                .map(DeliveryTaskMapper::toCreateResponseDto)
                 .collect(Collectors.toList());
         logger.debug("Retrieved {} delivery tasks for courier ID: {}", deliveryTasks.size(), courierId);
         return deliveryTasks;
@@ -68,7 +72,7 @@ public class DeliveryTaskService {
         logger.info("Fetching delivery tasks by status: {}", status);
         List<DeliveryTaskResponseDto> deliveryTasks = deliveryTaskRepository.findByStatus(status)
                 .stream()
-                .map(DeliveryTaskMapper::toResponseDto)
+                .map(DeliveryTaskMapper::toCreateResponseDto)
                 .collect(Collectors.toList());
         logger.debug("Retrieved {} delivery tasks for status: {}", deliveryTasks.size(), status);
         return deliveryTasks;
@@ -78,7 +82,7 @@ public class DeliveryTaskService {
         logger.info("Fetching delivery tasks by order ID: {}", orderId);
         List<DeliveryTaskResponseDto> deliveryTasks = deliveryTaskRepository.findByOrderId(orderId)
                 .stream()
-                .map(DeliveryTaskMapper::toResponseDto)
+                .map(DeliveryTaskMapper::toCreateResponseDto)
                 .collect(Collectors.toList());
         logger.debug("Retrieved {} delivery tasks for order ID: {}", deliveryTasks.size(), orderId);
         return deliveryTasks;
@@ -91,7 +95,7 @@ public class DeliveryTaskService {
             updatedDeliveryTask.get().setStatus(status);
             deliveryTaskRepository.save(updatedDeliveryTask.get());
             logger.debug("Delivery task ID: {} updated to status: {}", id, status);
-            return Optional.of(DeliveryTaskMapper.toResponseDto(updatedDeliveryTask.get()));
+            return Optional.of(DeliveryTaskMapper.toCreateResponseDto(updatedDeliveryTask.get()));
         }
         logger.warn("Delivery task not found with ID: {} for status update", id);
         return Optional.empty();
@@ -119,9 +123,24 @@ public class DeliveryTaskService {
             deliveryTask.setCourierLongitude(longitude);
             deliveryTaskRepository.save(deliveryTask);
             logger.debug("Location updated for delivery task ID: {}", id);
-            return DeliveryTaskMapper.toResponseDto(deliveryTask);
+            return DeliveryTaskMapper.toCreateResponseDto(deliveryTask);
         }
         logger.warn("Delivery task not found with ID: {} for location update", id);
+        return null;
+    }
+
+    public CancelDeliveryTaskResponseDto cancelDeliveryTask(String id, String cancellationReason) {
+        logger.info("Cancelling delivery task with ID: {}", id);
+        Optional<DeliveryTask> deliveryTask = deliveryTaskRepository.findById(id);
+        if (deliveryTask.isPresent()) {
+            DeliveryTask deliveryTaskToCancel = deliveryTask.get();
+            deliveryTaskToCancel.setStatus(DeliveryStatus.CANCELLED);
+            deliveryTaskToCancel.setCancellationReason(cancellationReason);
+            deliveryTaskRepository.save(deliveryTaskToCancel);
+            logger.debug("Delivery task cancelled for delivery task ID: {}", id);
+            return DeliveryTaskMapper.toCancelResponseDto(deliveryTaskToCancel);
+        }
+        logger.warn("Delivery task not found with ID: {}", id);
         return null;
     }
 
@@ -131,7 +150,7 @@ public class DeliveryTaskService {
         if (deliveryTask.isPresent()) {
             deliveryTaskRepository.delete(deliveryTask.get());
             logger.debug("Delivery task with ID: {} deleted", id);
-            return DeliveryTaskMapper.toResponseDto(deliveryTask.get());
+            return DeliveryTaskMapper.toCreateResponseDto(deliveryTask.get());
         }
         logger.warn("Delivery task not found with ID: {} for deletion", id);
         return null;
@@ -163,5 +182,24 @@ public class DeliveryTaskService {
         }
         deliveryTaskRepository.save(task);
         return Optional.of(message);
+    }
+
+    public SubmitCourierRatingResponseDto submitCourierRating(String id, Double rating) {
+        logger.info("Submitting courier rating for delivery task with ID: {}", id);
+        Optional<DeliveryTask> deliveryTask = deliveryTaskRepository.findById(id);
+        if (deliveryTask.isPresent()) {
+            DeliveryTask deliveryTaskToSubmit = deliveryTask.get();
+            if(!deliveryTaskToSubmit.getStatus().equals(DeliveryStatus.DELIVERED)) {
+                logger.error("Delivery task status is not DELIVERED");
+                throw new IllegalStateException("Task must be delivered to submit a rating");
+            }
+            deliveryTaskToSubmit.setCourierRating(rating);
+            deliveryTaskToSubmit.setRatingTimestamp(LocalDateTime.now());
+            deliveryTaskToSubmit.setUpdatedAt(LocalDateTime.now());
+            deliveryTaskRepository.save(deliveryTaskToSubmit);
+            return DeliveryTaskMapper.toSubmitCourierRatingResponseDto(deliveryTaskToSubmit);
+        }
+        logger.warn("Delivery task not found with ID: {} for courier rating", id);
+        return null;
     }
 }
