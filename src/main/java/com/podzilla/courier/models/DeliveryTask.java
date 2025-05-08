@@ -20,6 +20,9 @@ public class DeliveryTask {
     private Double courierLatitude;
     private Double courierLongitude;
     private String otp;
+    private String cancellationReason;
+    private Double courierRating;
+    private LocalDateTime ratingTimestamp;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
