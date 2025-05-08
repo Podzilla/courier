@@ -11,7 +11,7 @@ import com.podzilla.courier.dtos.events.OrderShippedEvent;
 import com.podzilla.courier.mappers.DeliveryTaskMapper;
 import com.podzilla.courier.models.DeliveryStatus;
 import com.podzilla.courier.models.DeliveryTask;
-import com.podzilla.courier.repositories.DeliveryTaskRepository;
+import com.podzilla.courier.repositories.delivery_task.IDeliveryTaskRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -29,12 +29,12 @@ import java.util.stream.Collectors;
 @Service
 public class DeliveryTaskService {
 
-    private final DeliveryTaskRepository deliveryTaskRepository;
+    private final IDeliveryTaskRepository deliveryTaskRepository;
     private final RabbitTemplate rabbitTemplate;
     private static final Logger logger = LoggerFactory.getLogger(DeliveryTaskService.class);
 
 
-    public DeliveryTaskService(DeliveryTaskRepository deliveryTaskRepository, RabbitTemplate rabbitTemplate) {
+    public DeliveryTaskService(IDeliveryTaskRepository deliveryTaskRepository, RabbitTemplate rabbitTemplate) {
         this.deliveryTaskRepository = deliveryTaskRepository;
         this.rabbitTemplate = rabbitTemplate;
     }
