@@ -1,12 +1,13 @@
 package com.podzilla.courier.controllers;
 
+import com.podzilla.courier.dtos.delivery_tasks.LocationUpdateDto;
+import org.springframework.data.util.Pair;
 import com.podzilla.courier.models.DeliveryStatus;
 import com.podzilla.courier.models.DeliveryTask;
 import com.podzilla.courier.services.DeliveryTaskService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.swing.text.html.Option;
 import java.util.List;
 import java.util.Optional;
 
@@ -56,4 +57,20 @@ public class DeliveryTaskController {
     public ResponseEntity<List<DeliveryTask>> getDeliveryTasksByOrderId(@PathVariable String orderId) {
         return ResponseEntity.ok(deliveryTaskService.getDeliveryTasksByOrderId(orderId));
     }
+
+    @GetMapping("/{id}/location")
+    public ResponseEntity<Pair<Double, Double>> getDeliveryTaskLocation(@PathVariable String id) {
+        return ResponseEntity.ok(deliveryTaskService.getDeliveryTaskLocation(id));
+    }
+
+    @PatchMapping("/{id}/location")
+    public ResponseEntity<DeliveryTask> updateDeliveryTaskLocation(@PathVariable String id, @RequestBody LocationUpdateDto locationUpdateDto) {
+        return ResponseEntity.ok(deliveryTaskService.updateDeliveryTaskLocation(id, locationUpdateDto.getLatitude(), locationUpdateDto.getLongitude()));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<DeliveryTask> deleteDeliveryTask(@PathVariable String id) {
+        return ResponseEntity.ok(deliveryTaskService.deleteDeliveryTask(id));
+    }
+
 }
