@@ -1,32 +1,42 @@
 package com.podzilla.courier.services;
 
+import com.podzilla.courier.config.RabbitMQConfig;
 import com.podzilla.courier.dtos.delivery_tasks.CancelDeliveryTaskResponseDto;
 import com.podzilla.courier.dtos.delivery_tasks.CreateDeliveryTaskRequestDto;
 import com.podzilla.courier.dtos.delivery_tasks.DeliveryTaskResponseDto;
 import com.podzilla.courier.dtos.delivery_tasks.SubmitCourierRatingResponseDto;
+import com.podzilla.courier.dtos.events.OrderDeliveredEvent;
+import com.podzilla.courier.dtos.events.OrderFailedEvent;
+import com.podzilla.courier.dtos.events.OrderShippedEvent;
 import com.podzilla.courier.mappers.DeliveryTaskMapper;
 import com.podzilla.courier.models.DeliveryStatus;
 import com.podzilla.courier.models.DeliveryTask;
 import com.podzilla.courier.repositories.DeliveryTaskRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
 public class DeliveryTaskService {
 
     private final DeliveryTaskRepository deliveryTaskRepository;
+    private final RabbitTemplate rabbitTemplate;
     private static final Logger logger = LoggerFactory.getLogger(DeliveryTaskService.class);
 
 
-    public DeliveryTaskService(DeliveryTaskRepository deliveryTaskRepository) {
+    public DeliveryTaskService(DeliveryTaskRepository deliveryTaskRepository, RabbitTemplate rabbitTemplate) {
         this.deliveryTaskRepository = deliveryTaskRepository;
+        this.rabbitTemplate = rabbitTemplate;
     }
 
     public DeliveryTaskResponseDto createDeliveryTask(CreateDeliveryTaskRequestDto deliveryTaskRequestDto) {
@@ -92,9 +102,23 @@ public class DeliveryTaskService {
         logger.info("Updating delivery task with ID: {} to {}", id, status);
         Optional<DeliveryTask> updatedDeliveryTask = deliveryTaskRepository.findById(id);
         if (updatedDeliveryTask.isPresent()) {
-            updatedDeliveryTask.get().setStatus(status);
-            deliveryTaskRepository.save(updatedDeliveryTask.get());
+            DeliveryTask task = updatedDeliveryTask.get();
+            task.setStatus(status);
+            deliveryTaskRepository.save(task);
             logger.debug("Delivery task ID: {} updated to status: {}", id, status);
+            // publish order.shipped event if status is OUT_FOR_DELIVERY
+            if (status == DeliveryStatus.OUT_FOR_DELIVERY) {
+                OrderShippedEvent event = new OrderShippedEvent(task.getOrderId(), task.getCourierId(), Instant.now());
+                try {
+                    rabbitTemplate.convertAndSend(RabbitMQConfig.ORDER_EXCHANGE, RabbitMQConfig.ORDER_SHIPPED_KEY, event, message -> {
+                        message.getMessageProperties().setCorrelationId(UUID.randomUUID().toString());
+                        return message;
+                    });
+                    logger.info("Published order.shipped event for order ID: {}", task.getOrderId());
+                } catch (Exception e) {
+                    logger.error("Failed to publish order.shipped event for order ID: {}", task.getOrderId(), e);
+                }
+            }
             return Optional.of(DeliveryTaskMapper.toCreateResponseDto(updatedDeliveryTask.get()));
         }
         logger.warn("Delivery task not found with ID: {} for status update", id);
@@ -138,6 +162,22 @@ public class DeliveryTaskService {
             deliveryTaskToCancel.setCancellationReason(cancellationReason);
             deliveryTaskRepository.save(deliveryTaskToCancel);
             logger.debug("Delivery task cancelled for delivery task ID: {}", id);
+            // publish order.failed event
+            OrderFailedEvent event = new OrderFailedEvent(
+                    deliveryTaskToCancel.getOrderId(),
+                    deliveryTaskToCancel.getCourierId(),
+                    cancellationReason,
+                    Instant.now()
+            );
+            try {
+                rabbitTemplate.convertAndSend(RabbitMQConfig.ORDER_EXCHANGE, RabbitMQConfig.ORDER_FAILED_KEY, event, message -> {
+                    message.getMessageProperties().setCorrelationId(UUID.randomUUID().toString());
+                    return message;
+                });
+                logger.info("Published order.failed event for order ID: {}", deliveryTaskToCancel.getOrderId());
+            } catch (Exception e) {
+                logger.error("Failed to publish order.failed event for order ID: {}", deliveryTaskToCancel.getOrderId(), e);
+            }
             return DeliveryTaskMapper.toCancelResponseDto(deliveryTaskToCancel);
         }
         logger.warn("Delivery task not found with ID: {}", id);
@@ -177,6 +217,22 @@ public class DeliveryTaskService {
             task.setStatus(DeliveryStatus.DELIVERED);
             message = "OTP confirmed";
             logger.debug("OTP confirmed for delivery task ID: {}", id);
+            // publish order.delivered event
+            OrderDeliveredEvent event = new OrderDeliveredEvent(
+                    task.getOrderId(),
+                    task.getCourierId(),
+                    Instant.now(),
+                    task.getCourierRating() != null ? BigDecimal.valueOf(task.getCourierRating()) : null
+            );
+            try {
+                rabbitTemplate.convertAndSend(RabbitMQConfig.ORDER_EXCHANGE, RabbitMQConfig.ORDER_DELIVERED_KEY, event, message1 -> {
+                    message1.getMessageProperties().setCorrelationId(UUID.randomUUID().toString());
+                    return message1;
+                });
+                logger.info("Published order.delivered event for order ID: {}", task.getOrderId());
+            } catch (Exception e) {
+                logger.error("Failed to publish order.delivered event for order ID: {}", task.getOrderId(), e);
+            }
         } else {
             logger.debug("OTP not confirmed for delivery task ID: {}", id);
         }

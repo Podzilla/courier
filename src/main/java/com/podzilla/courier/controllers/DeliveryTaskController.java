@@ -80,9 +80,9 @@ public class DeliveryTaskController {
     }
 
     @PatchMapping("/{id}/cancel")
-    public ResponseEntity<CancelDeliveryTaskResponseDto> cancelDeliveryTask(@PathVariable String id, @RequestBody String cancellationReason) {
+    public ResponseEntity<CancelDeliveryTaskResponseDto> cancelDeliveryTask(@PathVariable String id, @RequestBody CancelDeliveryTaskRequestDto cancelTaskDto) {
         logger.info("Received request to cancel delivery task with id {}", id);
-        return ResponseEntity.ok(deliveryTaskService.cancelDeliveryTask(id, cancellationReason));
+        return ResponseEntity.ok(deliveryTaskService.cancelDeliveryTask(id, cancelTaskDto.cancellationReason()));
     }
 
     @PatchMapping("/{id}/rate")
