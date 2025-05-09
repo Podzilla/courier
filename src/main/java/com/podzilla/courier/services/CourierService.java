@@ -1,7 +1,7 @@
 package com.podzilla.courier.services;
 
 import com.podzilla.courier.models.Courier;
-import com.podzilla.courier.repositories.CourierRepository;
+import com.podzilla.courier.repositories.courier.CourierRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
