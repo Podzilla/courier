@@ -1,4 +1,6 @@
 package com.podzilla.courier.dtos.couriers;
 
-public record CourierResponseDto(String id, String name, String rating, String status, String mobileNo) {
+import com.podzilla.courier.models.CourierStatus;
+
+public record CourierResponseDto(String id, String name, String rating, CourierStatus status, String mobileNo) {
 }

@@ -8,7 +8,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class Courier {
     @Id private String id;
     private String name;
-    private String status;
+    private CourierStatus status;
     private String mobileNo;
     private Double rating;
 }

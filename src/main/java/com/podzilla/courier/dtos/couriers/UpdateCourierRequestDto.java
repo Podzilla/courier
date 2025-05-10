@@ -1,5 +1,6 @@
 package com.podzilla.courier.dtos.couriers;
 
+import com.podzilla.courier.models.CourierStatus;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 
@@ -11,5 +12,5 @@ public class UpdateCourierRequestDto {
     private String name;
     private String mobileNo;
     private Double rating;
-    private String status;
+    private CourierStatus status;
 }
