@@ -4,11 +4,12 @@ import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-@Data @Document(collection = "couriers")
+@Data
+@Document(collection = "couriers")
 public class Courier {
-    @Id private String id;
+    @Id
+    private String id;
     private String name;
-    private CourierStatus status;
+    private CourierStatus status = CourierStatus.AVAILABLE;
     private String mobileNo;
-    private Double rating;
 }

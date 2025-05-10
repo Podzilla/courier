@@ -8,9 +8,7 @@ import lombok.Getter;
 public class UpdateCourierRequestDto {
     @NotNull(message = "ID is required")
     private String id;
-
     private String name;
     private String mobileNo;
-    private Double rating;
     private CourierStatus status;
 }
