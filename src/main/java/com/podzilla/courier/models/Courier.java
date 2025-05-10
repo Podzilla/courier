@@ -10,4 +10,5 @@ public class Courier {
     private String name;
     private String status;
     private String mobileNo;
+    private Double rating;
 }
