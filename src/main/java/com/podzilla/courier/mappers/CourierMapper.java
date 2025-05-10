@@ -14,16 +14,7 @@ public class CourierMapper {
         return courier;
     }
 
-    public static Courier toEntity(UpdateCourierRequestDto dto) {
-        Courier courier = new Courier();
-        courier.setId(dto.getId());
-        if (dto.getName() != null) courier.setName(dto.getName());
-        if (dto.getMobileNo() != null) courier.setMobileNo(dto.getMobileNo());
-        if (dto.getStatus() != null) courier.setStatus(dto.getStatus());
-        return courier;
-    }
-
     public static CourierResponseDto toCreateResponseDto(Courier courier) {
-        return new CourierResponseDto(courier.getId(), courier.getName(), courier.getMobileNo());
+        return new CourierResponseDto(courier.getId(), courier.getName(), courier.getMobileNo(), courier.getStatus());
     }
 }
