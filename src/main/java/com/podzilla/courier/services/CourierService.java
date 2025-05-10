@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class CourierService {
-    
+
     private final CourierRepository courierRepository;
     private static final Logger logger = LoggerFactory.getLogger(CourierService.class);
 
@@ -56,7 +56,10 @@ public class CourierService {
             logger.debug("Courier not found with ID: {}", id);
             return Optional.empty();
         }
-        Courier courier = CourierMapper.toEntity(courierDto);
+        Courier courier = existingCourier.get();
+        if (courierDto.getName() != null) courier.setName(courierDto.getName());
+        if (courierDto.getMobileNo() != null) courier.setMobileNo(courierDto.getMobileNo());
+        if (courierDto.getStatus() != null) courier.setStatus(courierDto.getStatus());
         Courier savedCourier = courierRepository.save(courier);
         logger.info("Updated courier with ID: {}", savedCourier.getId());
         return Optional.of(CourierMapper.toCreateResponseDto(savedCourier));

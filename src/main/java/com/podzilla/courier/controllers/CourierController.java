@@ -32,7 +32,7 @@ public class CourierController {
         return courierService.getCourierById(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping("/")
+    @PostMapping
     public ResponseEntity<CourierResponseDto> createCourier(@RequestBody CreateCourierRequestDto courier) {
         logger.info("Received request to add courier");
         return ResponseEntity.ok(courierService.createCourier(courier));
