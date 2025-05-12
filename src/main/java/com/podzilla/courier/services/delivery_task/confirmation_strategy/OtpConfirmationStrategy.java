@@ -1,15 +1,15 @@
 package com.podzilla.courier.services.delivery_task.confirmation_strategy;
 
-import com.podzilla.courier.dtos.events.OrderDeliveredEvent;
-import com.podzilla.courier.events.EventPublisher;
 import com.podzilla.courier.models.DeliveryStatus;
 import com.podzilla.courier.models.DeliveryTask;
+import com.podzilla.mq.EventPublisher;
+import com.podzilla.mq.EventsConstants;
+import com.podzilla.mq.events.OrderDeliveredEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.Optional;
 
 @Component
@@ -32,13 +32,12 @@ public class OtpConfirmationStrategy implements DeliveryConfirmationStrategy {
         task.setStatus(DeliveryStatus.DELIVERED);
         logger.debug("OTP confirmed for task ID: {}", task.getId());
 
-        OrderDeliveredEvent event = new OrderDeliveredEvent(
+        com.podzilla.mq.events.OrderDeliveredEvent event = new OrderDeliveredEvent(
                 task.getOrderId(),
                 task.getCourierId(),
-                Instant.now(),
                 task.getCourierRating() != null ? BigDecimal.valueOf(task.getCourierRating()) : null
         );
-        eventPublisher.publishOrderDelivered(event);
+        eventPublisher.publishEvent(EventsConstants.ORDER_DELIVERED, event);
 
         return Optional.of("OTP confirmed");
     }

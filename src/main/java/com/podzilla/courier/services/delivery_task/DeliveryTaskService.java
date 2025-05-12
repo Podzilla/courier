@@ -4,21 +4,21 @@ import com.podzilla.courier.dtos.delivery_tasks.CancelDeliveryTaskResponseDto;
 import com.podzilla.courier.dtos.delivery_tasks.CreateDeliveryTaskRequestDto;
 import com.podzilla.courier.dtos.delivery_tasks.DeliveryTaskResponseDto;
 import com.podzilla.courier.dtos.delivery_tasks.SubmitCourierRatingResponseDto;
-import com.podzilla.courier.dtos.events.OrderFailedEvent;
-import com.podzilla.courier.dtos.events.OrderShippedEvent;
-import com.podzilla.courier.events.EventPublisher;
 import com.podzilla.courier.mappers.DeliveryTaskMapper;
 import com.podzilla.courier.models.ConfirmationType;
 import com.podzilla.courier.models.DeliveryStatus;
 import com.podzilla.courier.models.DeliveryTask;
 import com.podzilla.courier.repositories.delivery_task.IDeliveryTaskRepository;
 import com.podzilla.courier.services.delivery_task.confirmation_strategy.DeliveryConfirmationStrategy;
+import com.podzilla.mq.EventPublisher;
+import com.podzilla.mq.EventsConstants;
+import com.podzilla.mq.events.OrderCancelledEvent;
+import com.podzilla.mq.events.OrderOutForDeliveryEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -111,8 +111,8 @@ public class DeliveryTaskService {
             logger.debug("Delivery task ID: {} updated to status: {}", id, status);
             // publish order.shipped event if status is OUT_FOR_DELIVERY
             if (status == DeliveryStatus.OUT_FOR_DELIVERY) {
-                OrderShippedEvent event = new OrderShippedEvent(task.getOrderId(), task.getCourierId(), Instant.now());
-                eventPublisher.publishOrderShipped(event);
+                OrderOutForDeliveryEvent event = new OrderOutForDeliveryEvent(task.getOrderId(), task.getCourierId());
+                eventPublisher.publishEvent(EventsConstants.ORDER_OUT_FOR_DELIVERY, event);
 
                 if (task.getConfirmationType() == ConfirmationType.OTP) {
                     String otp = IntStream.range(0, 4)
@@ -168,13 +168,12 @@ public class DeliveryTaskService {
             deliveryTaskRepository.save(deliveryTaskToCancel);
             logger.debug("Delivery task cancelled for delivery task ID: {}", id);
             // publish order.failed event
-            OrderFailedEvent event = new OrderFailedEvent(
+            OrderCancelledEvent event = new OrderCancelledEvent(
                     deliveryTaskToCancel.getOrderId(),
                     deliveryTaskToCancel.getCourierId(),
-                    cancellationReason,
-                    Instant.now()
+                    cancellationReason
             );
-            eventPublisher.publishOrderFailed(event);
+            eventPublisher.publishEvent(EventsConstants.ORDER_CANCELLED, event);
             return DeliveryTaskMapper.toCancelResponseDto(deliveryTaskToCancel);
         }
         logger.warn("Delivery task not found with ID: {}", id);
