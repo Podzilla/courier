@@ -9,7 +9,7 @@ import com.podzilla.courier.dtos.delivery_tasks.CreateDeliveryTaskRequestDto;
 import com.podzilla.courier.dtos.delivery_tasks.DeliveryTaskResponseDto;
 import com.podzilla.courier.dtos.delivery_tasks.UpdateDeliveryStatusRequestDto;
 import com.podzilla.courier.models.DeliveryStatus;
-import com.podzilla.courier.services.DeliveryTaskService;
+import com.podzilla.courier.services.delivery_task.DeliveryTaskService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
@@ -174,30 +174,17 @@ public class DeliveryTaskController {
         return ResponseEntity.ok(deliveryTaskService.deleteDeliveryTask(id));
     }
 
-    @PutMapping("/{id}/otp")
-    @Operation(summary = "Update OTP", description = "Updates the One-Time Password for a delivery task")
-    @ApiResponse(responseCode = "200", description = "OTP updated successfully")
-    @ApiResponse(responseCode = "404", description = "Task not found")
-    public ResponseEntity<String> updateOtp(
+    @PutMapping("/{id}/confirmation")
+    @Operation(summary = "Confirm delivery", description = "Validates the delivery confirmation input (e.g., OTP, QR code, or signature)")
+    @ApiResponse(responseCode = "200", description = "Delivery confirmed successfully")
+    @ApiResponse(responseCode = "404", description = "Invalid confirmation input or task not found")
+    public ResponseEntity<String> confirmDelivery(
             @Parameter(description = "ID of the delivery task")
             @PathVariable final String id,
-            @RequestBody(description = "New OTP value")
-            @org.springframework.web.bind.annotation.RequestBody final String otp) {
-        return deliveryTaskService.updateOtp(id, otp)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    @PutMapping("/{id}/otp-confirmation")
-    @Operation(summary = "Confirm OTP", description = "Validates the One-Time Password for a delivery task")
-    @ApiResponse(responseCode = "200", description = "OTP confirmed successfully")
-    @ApiResponse(responseCode = "404", description = "Invalid OTP or task not found")
-    public ResponseEntity<String> confirmOTP(
-            @Parameter(description = "ID of the delivery task")
-            @PathVariable final String id,
-            @RequestBody(description = "OTP to validate")
-            @org.springframework.web.bind.annotation.RequestBody final String otp) {
-        return deliveryTaskService.confirmOTP(id, otp)
+            @RequestBody(description = "Confirmation input (e.g., OTP, QR code, or signature)")
+            @org.springframework.web.bind.annotation.RequestBody final String confirmationInput) {
+        LOGGER.info("Received request to confirm delivery for task ID: {}", id);
+        return deliveryTaskService.confirmDelivery(id, confirmationInput)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }

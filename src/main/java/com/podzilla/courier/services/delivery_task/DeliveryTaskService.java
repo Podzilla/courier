@@ -1,43 +1,45 @@
-package com.podzilla.courier.services;
+package com.podzilla.courier.services.delivery_task;
 
-import com.podzilla.courier.config.RabbitMQConfig;
 import com.podzilla.courier.dtos.delivery_tasks.CancelDeliveryTaskResponseDto;
 import com.podzilla.courier.dtos.delivery_tasks.CreateDeliveryTaskRequestDto;
 import com.podzilla.courier.dtos.delivery_tasks.DeliveryTaskResponseDto;
 import com.podzilla.courier.dtos.delivery_tasks.SubmitCourierRatingResponseDto;
-import com.podzilla.courier.dtos.events.OrderDeliveredEvent;
 import com.podzilla.courier.dtos.events.OrderFailedEvent;
 import com.podzilla.courier.dtos.events.OrderShippedEvent;
 import com.podzilla.courier.events.EventPublisher;
 import com.podzilla.courier.mappers.DeliveryTaskMapper;
+import com.podzilla.courier.models.ConfirmationType;
 import com.podzilla.courier.models.DeliveryStatus;
 import com.podzilla.courier.models.DeliveryTask;
 import com.podzilla.courier.repositories.delivery_task.IDeliveryTaskRepository;
+import com.podzilla.courier.services.delivery_task.confirmation_strategy.DeliveryConfirmationStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 public class DeliveryTaskService {
 
     private final IDeliveryTaskRepository deliveryTaskRepository;
     private final EventPublisher eventPublisher;
+    private final Map<ConfirmationType, DeliveryConfirmationStrategy> confirmationStrategies;
     private static final Logger logger = LoggerFactory.getLogger(DeliveryTaskService.class);
 
 
-    public DeliveryTaskService(IDeliveryTaskRepository deliveryTaskRepository, EventPublisher eventPublisher) {
+    public DeliveryTaskService(IDeliveryTaskRepository deliveryTaskRepository, EventPublisher eventPublisher,
+                               Map<ConfirmationType, DeliveryConfirmationStrategy> confirmationStrategies) {
         this.deliveryTaskRepository = deliveryTaskRepository;
         this.eventPublisher = eventPublisher;
+        this.confirmationStrategies = confirmationStrategies;
     }
 
     public DeliveryTaskResponseDto createDeliveryTask(CreateDeliveryTaskRequestDto deliveryTaskRequestDto) {
@@ -111,6 +113,16 @@ public class DeliveryTaskService {
             if (status == DeliveryStatus.OUT_FOR_DELIVERY) {
                 OrderShippedEvent event = new OrderShippedEvent(task.getOrderId(), task.getCourierId(), Instant.now());
                 eventPublisher.publishOrderShipped(event);
+
+                if (task.getConfirmationType() == ConfirmationType.OTP) {
+                    String otp = IntStream.range(0, 4)
+                            .mapToObj(i -> String.valueOf(task.getId().charAt(i)))
+                            .collect(Collectors.joining());
+                    task.setOtp(otp);
+                } else if (task.getConfirmationType() == ConfirmationType.QR_CODE) {
+                    String qrContent = "QR-" + task.getId();
+                    task.setQrCode(qrContent);
+                }
             }
             return Optional.of(DeliveryTaskMapper.toCreateResponseDto(updatedDeliveryTask.get()));
         }
@@ -192,29 +204,26 @@ public class DeliveryTaskService {
         return Optional.of("Updated OTP");
     }
 
-    public Optional<String> confirmOTP(String id, String otp) {
-        logger.info("Confirming otp for delivery task with ID: {}", id);
+    public Optional<String> confirmDelivery(String id, String confirmationInput) {
+        logger.info("Confirming delivery for task ID: {}", id);
         DeliveryTask task = deliveryTaskRepository.findById(id).orElse(null);
-        if (task == null)
+        if (task == null) {
+            logger.warn("Delivery task not found with ID: {} for customer delivery confirmation", id);
             return Optional.empty();
-        String message = "Wrong OTP";
-        if (task.getOtp().equals(otp)) {
-            task.setStatus(DeliveryStatus.DELIVERED);
-            message = "OTP confirmed";
-            logger.debug("OTP confirmed for delivery task ID: {}", id);
-            // publish order.delivered event
-            OrderDeliveredEvent event = new OrderDeliveredEvent(
-                    task.getOrderId(),
-                    task.getCourierId(),
-                    Instant.now(),
-                    task.getCourierRating() != null ? BigDecimal.valueOf(task.getCourierRating()) : null
-            );
-            eventPublisher.publishOrderDelivered(event);
-        } else {
-            logger.debug("OTP not confirmed for delivery task ID: {}", id);
         }
-        deliveryTaskRepository.save(task);
-        return Optional.of(message);
+
+        ConfirmationType confirmationType = task.getConfirmationType();
+        DeliveryConfirmationStrategy strategy = confirmationStrategies.get(confirmationType);
+        if (strategy == null) {
+            logger.error("No confirmation strategy found for type: {}", confirmationType);
+            return Optional.of("Invalid confirmation type");
+        }
+
+        Optional<String> result = strategy.confirmDelivery(task, confirmationInput);
+        if (result.isPresent() && result.get().contains("confirmed")) {
+            deliveryTaskRepository.save(task);
+        }
+        return result;
     }
 
     public SubmitCourierRatingResponseDto submitCourierRating(String id, Double rating) {

@@ -6,7 +6,7 @@ import com.podzilla.courier.dtos.couriers.CreateCourierRequestDto;
 import com.podzilla.courier.dtos.couriers.UpdateCourierRequestDto;
 import com.podzilla.courier.dtos.couriers.CourierResponseDto;
 import com.podzilla.courier.models.CourierStatus;
-import com.podzilla.courier.services.CourierService;
+import com.podzilla.courier.services.courier.CourierService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

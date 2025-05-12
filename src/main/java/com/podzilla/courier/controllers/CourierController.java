@@ -3,7 +3,7 @@ package com.podzilla.courier.controllers;
 import com.podzilla.courier.dtos.couriers.CourierResponseDto;
 import com.podzilla.courier.dtos.couriers.CreateCourierRequestDto;
 import com.podzilla.courier.dtos.couriers.UpdateCourierRequestDto;
-import com.podzilla.courier.services.CourierService;
+import com.podzilla.courier.services.courier.CourierService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

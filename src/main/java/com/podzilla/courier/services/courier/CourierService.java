@@ -1,4 +1,4 @@
-package com.podzilla.courier.services;
+package com.podzilla.courier.services.courier;
 
 import com.podzilla.courier.dtos.couriers.*;
 import com.podzilla.courier.mappers.CourierMapper;
