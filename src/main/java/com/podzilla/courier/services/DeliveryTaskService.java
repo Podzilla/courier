@@ -8,8 +8,6 @@ import com.podzilla.courier.dtos.delivery_tasks.CancelDeliveryTaskResponseDto;
 import com.podzilla.courier.dtos.delivery_tasks.CreateDeliveryTaskRequestDto;
 import com.podzilla.courier.dtos.delivery_tasks.DeliveryTaskResponseDto;
 import com.podzilla.courier.dtos.delivery_tasks.SubmitCourierRatingResponseDto;
-import com.podzilla.courier.dtos.events.OrderDeliveredEvent;
-import com.podzilla.courier.dtos.events.OrderFailedEvent;
 import com.podzilla.courier.events.EventPublisher;
 import com.podzilla.courier.mappers.DeliveryTaskMapper;
 import com.podzilla.courier.models.DeliveryStatus;
@@ -35,12 +33,13 @@ public class DeliveryTaskService {
     private static final Logger LOGGER = LoggerFactory.getLogger(DeliveryTaskService.class);
 
 
-    public DeliveryTaskService(IDeliveryTaskRepository deliveryTaskRepository, EventPublisher eventPublisher) {
+    public DeliveryTaskService(final IDeliveryTaskRepository deliveryTaskRepository,
+                               final EventPublisher eventPublisher) {
         this.deliveryTaskRepository = deliveryTaskRepository;
         this.eventPublisher = eventPublisher;
     }
 
-    public DeliveryTaskResponseDto createDeliveryTask(CreateDeliveryTaskRequestDto deliveryTaskRequestDto) {
+    public DeliveryTaskResponseDto createDeliveryTask(final CreateDeliveryTaskRequestDto deliveryTaskRequestDto) {
         LOGGER.info("Creating delivery task for order ID: {}", deliveryTaskRequestDto.getOrderId());
         DeliveryTask deliveryTask = DeliveryTaskMapper.toEntity(deliveryTaskRequestDto);
         DeliveryTask savedTask = deliveryTaskRepository.save(deliveryTask);
@@ -58,7 +57,7 @@ public class DeliveryTaskService {
         return deliveryTasks;
     }
 
-    public Optional<DeliveryTaskResponseDto> getDeliveryTaskById(String id) {
+    public Optional<DeliveryTaskResponseDto> getDeliveryTaskById(final String id) {
         LOGGER.info("Fetching delivery task with ID: {}", id);
         Optional<DeliveryTask> deliveryTask = deliveryTaskRepository.findById(id);
         if (deliveryTask.isPresent()) {
@@ -69,7 +68,7 @@ public class DeliveryTaskService {
         return deliveryTask.map(DeliveryTaskMapper::toCreateResponseDto);
     }
 
-    public List<DeliveryTaskResponseDto> getDeliveryTasksByCourierId(String courierId) {
+    public List<DeliveryTaskResponseDto> getDeliveryTasksByCourierId(final String courierId) {
         LOGGER.info("Fetching delivery tasks by courier ID: {}", courierId);
         List<DeliveryTaskResponseDto> deliveryTasks = deliveryTaskRepository.findByCourierId(courierId)
                 .stream()
@@ -79,7 +78,7 @@ public class DeliveryTaskService {
         return deliveryTasks;
     }
 
-    public List<DeliveryTaskResponseDto> getDeliveryTasksByStatus(DeliveryStatus status) {
+    public List<DeliveryTaskResponseDto> getDeliveryTasksByStatus(final DeliveryStatus status) {
         LOGGER.info("Fetching delivery tasks by status: {}", status);
         List<DeliveryTaskResponseDto> deliveryTasks = deliveryTaskRepository.findByStatus(status)
                 .stream()
@@ -89,7 +88,7 @@ public class DeliveryTaskService {
         return deliveryTasks;
     }
 
-    public List<DeliveryTaskResponseDto> getDeliveryTasksByOrderId(String orderId) {
+    public List<DeliveryTaskResponseDto> getDeliveryTasksByOrderId(final String orderId) {
         LOGGER.info("Fetching delivery tasks by order ID: {}", orderId);
         List<DeliveryTaskResponseDto> deliveryTasks = deliveryTaskRepository.findByOrderId(orderId)
                 .stream()
@@ -99,7 +98,7 @@ public class DeliveryTaskService {
         return deliveryTasks;
     }
 
-    public Optional<DeliveryTaskResponseDto> updateDeliveryTaskStatus(String id, DeliveryStatus status) {
+    public Optional<DeliveryTaskResponseDto> updateDeliveryTaskStatus(final String id, final DeliveryStatus status) {
         LOGGER.info("Updating delivery task with ID: {} to {}", id, status);
         Optional<DeliveryTask> updatedDeliveryTask = deliveryTaskRepository.findById(id);
         if (updatedDeliveryTask.isPresent()) {
@@ -120,7 +119,7 @@ public class DeliveryTaskService {
         return Optional.empty();
     }
 
-    public Pair<Double, Double> getDeliveryTaskLocation(String id) {
+    public Pair<Double, Double> getDeliveryTaskLocation(final String id) {
         LOGGER.info("Fetching location for delivery task with ID: {}", id);
         Optional<DeliveryTask> deliveryTask = deliveryTaskRepository.findById(id);
         if (deliveryTask.isPresent()) {
@@ -133,7 +132,8 @@ public class DeliveryTaskService {
         return Pair.of(0.0, 0.0);
     }
 
-    public DeliveryTaskResponseDto updateDeliveryTaskLocation(String id, Double latitude, Double longitude) {
+    public DeliveryTaskResponseDto updateDeliveryTaskLocation(final String id, final Double latitude,
+                                                              final Double longitude) {
         LOGGER.info("Updating location for delivery task with ID: {} to ({}, {})", id, latitude, longitude);
         Optional<DeliveryTask> updatedDeliveryTask = deliveryTaskRepository.findById(id);
         if (updatedDeliveryTask.isPresent()) {
@@ -148,7 +148,7 @@ public class DeliveryTaskService {
         return null;
     }
 
-    public CancelDeliveryTaskResponseDto cancelDeliveryTask(String id, String cancellationReason) {
+    public CancelDeliveryTaskResponseDto cancelDeliveryTask(final String id, final String cancellationReason) {
         LOGGER.info("Cancelling delivery task with ID: {}", id);
         Optional<DeliveryTask> deliveryTask = deliveryTaskRepository.findById(id);
         if (deliveryTask.isPresent()) {
@@ -173,7 +173,7 @@ public class DeliveryTaskService {
         return null;
     }
 
-    public DeliveryTaskResponseDto deleteDeliveryTask(String id) {
+    public DeliveryTaskResponseDto deleteDeliveryTask(final String id) {
         LOGGER.info("Deleting delivery task with ID: {}", id);
         Optional<DeliveryTask> deliveryTask = deliveryTaskRepository.findById(id);
         if (deliveryTask.isPresent()) {
@@ -185,22 +185,24 @@ public class DeliveryTaskService {
         return null;
     }
 
-    public Optional<String> updateOtp(String id, String otp) {
+    public Optional<String> updateOtp(final String id, final String otp) {
         LOGGER.info("Updating otp for delivery task with ID: {}", id);
         DeliveryTask task = deliveryTaskRepository.findById(id).orElse(null);
-        if (task == null)
+        if (task == null) {
             return Optional.empty();
+        }
         task.setOtp(otp);
         deliveryTaskRepository.save(task);
         LOGGER.debug("OTP updated for delivery task ID: {}", id);
         return Optional.of("Updated OTP");
     }
 
-    public Optional<String> confirmOTP(String id, String otp) {
+    public Optional<String> confirmOTP(final String id, final String otp) {
         LOGGER.info("Confirming otp for delivery task with ID: {}", id);
         DeliveryTask task = deliveryTaskRepository.findById(id).orElse(null);
-        if (task == null)
+        if (task == null) {
             return Optional.empty();
+        }
         String message = "Wrong OTP";
         if (task.getOtp().equals(otp)) {
             task.setStatus(DeliveryStatus.DELIVERED);
@@ -226,12 +228,12 @@ public class DeliveryTaskService {
         return Optional.of(message);
     }
 
-    public SubmitCourierRatingResponseDto submitCourierRating(String id, Double rating) {
+    public SubmitCourierRatingResponseDto submitCourierRating(final String id, final Double rating) {
         LOGGER.info("Submitting courier rating for delivery task with ID: {}", id);
         Optional<DeliveryTask> deliveryTask = deliveryTaskRepository.findById(id);
         if (deliveryTask.isPresent()) {
             DeliveryTask deliveryTaskToSubmit = deliveryTask.get();
-            if(!deliveryTaskToSubmit.getStatus().equals(DeliveryStatus.DELIVERED)) {
+            if (!deliveryTaskToSubmit.getStatus().equals(DeliveryStatus.DELIVERED)) {
                 LOGGER.error("Delivery task status is not DELIVERED");
                 throw new IllegalStateException("Task must be delivered to submit a rating");
             }
