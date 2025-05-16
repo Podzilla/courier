@@ -175,7 +175,8 @@ public class DeliveryTaskController {
     }
 
     @PutMapping("/{id}/confirmation")
-    @Operation(summary = "Confirm delivery", description = "Validates the delivery confirmation input (e.g., OTP, QR code, or signature)")
+    @Operation(summary = "Confirm delivery",
+            description = "Validates the delivery confirmation input (e.g., OTP, QR code, or signature)")
     @ApiResponse(responseCode = "200", description = "Delivery confirmed successfully")
     @ApiResponse(responseCode = "404", description = "Invalid confirmation input or task not found")
     public ResponseEntity<String> confirmDelivery(
