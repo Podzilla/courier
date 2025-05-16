@@ -2,8 +2,8 @@ package com.podzilla.courier.services.delivery_task.confirmation_strategy;
 
 import com.podzilla.courier.models.DeliveryStatus;
 import com.podzilla.courier.models.DeliveryTask;
+import com.podzilla.courier.services.delivery_task.publish_command.StopPollingCommand;
 import com.podzilla.mq.EventPublisher;
-import com.podzilla.mq.EventsConstants;
 import com.podzilla.mq.events.OrderDeliveredEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,12 +32,13 @@ public class OtpConfirmationStrategy implements DeliveryConfirmationStrategy {
         task.setStatus(DeliveryStatus.DELIVERED);
         LOGGER.debug("OTP confirmed for task ID: {}", task.getId());
 
-        com.podzilla.mq.events.OrderDeliveredEvent event = new OrderDeliveredEvent(
+        OrderDeliveredEvent event = new OrderDeliveredEvent(
                 task.getOrderId(),
                 task.getCourierId(),
                 task.getCourierRating() != null ? BigDecimal.valueOf(task.getCourierRating()) : null
         );
-        eventPublisher.publishEvent(EventsConstants.ORDER_DELIVERED, event);
+        StopPollingCommand stopPollingCommand = new StopPollingCommand(eventPublisher, event);
+        stopPollingCommand.execute();
 
         return Optional.of("OTP confirmed");
     }

@@ -4,20 +4,19 @@ import com.podzilla.mq.EventPublisher;
 import com.podzilla.mq.EventsConstants;
 import com.podzilla.mq.events.OrderOutForDeliveryEvent;
 
-public class PublishOrderOutForDeliveryEventCommand implements Command {
+public class StartPollingCommand implements Command {
 
     private final EventPublisher eventPublisher;
     private final OrderOutForDeliveryEvent event;
 
-    public PublishOrderOutForDeliveryEventCommand(final EventPublisher eventPublisher,
-                                                  final String orderId,
-                                                  final String courierId) {
+    public StartPollingCommand(final EventPublisher eventPublisher, OrderOutForDeliveryEvent event) {
         this.eventPublisher = eventPublisher;
-        this.event = new OrderOutForDeliveryEvent(orderId, courierId);
+        this.event = event;
     }
 
     @Override
     public void execute() {
+        // publish out_for_delivery event so that the order service start tracking courier location
         eventPublisher.publishEvent(EventsConstants.ORDER_OUT_FOR_DELIVERY, event);
     }
 }

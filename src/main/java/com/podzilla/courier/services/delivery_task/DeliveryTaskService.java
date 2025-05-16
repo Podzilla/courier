@@ -11,9 +11,11 @@ import com.podzilla.courier.models.DeliveryTask;
 import com.podzilla.courier.repositories.delivery_task.IDeliveryTaskRepository;
 import com.podzilla.courier.services.delivery_task.confirmation_strategy.DeliveryConfirmationStrategy;
 import com.podzilla.courier.services.delivery_task.publish_command.Command;
-import com.podzilla.courier.services.delivery_task.publish_command.PublishOrderCancelledEventCommand;
-import com.podzilla.courier.services.delivery_task.publish_command.PublishOrderOutForDeliveryEventCommand;
+import com.podzilla.courier.services.delivery_task.publish_command.StopPollingCommand;
+import com.podzilla.courier.services.delivery_task.publish_command.StartPollingCommand;
 import com.podzilla.mq.EventPublisher;
+import com.podzilla.mq.events.OrderCancelledEvent;
+import com.podzilla.mq.events.OrderOutForDeliveryEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -114,13 +116,13 @@ public class DeliveryTaskService {
             LOGGER.debug("Delivery task ID: {} updated to status: {}", id, status);
             // publish order.shipped event if status is OUT_FOR_DELIVERY
             if (status == DeliveryStatus.OUT_FOR_DELIVERY) {
-                Command outForDeliveryCommand = new PublishOrderOutForDeliveryEventCommand(
+                OrderOutForDeliveryEvent event = new OrderOutForDeliveryEvent(task.getOrderId(),
+                        task.getCourierId());
+                Command startPollingCommand = new StartPollingCommand(
                         eventPublisher,
-                        task.getOrderId(),
-                        task.getCourierId()
+                        event
                 );
-
-                outForDeliveryCommand.execute();
+                startPollingCommand.execute();
 
                 if (task.getConfirmationType() == ConfirmationType.OTP) {
                     String otp = IntStream.range(0, otpLength)
@@ -177,14 +179,16 @@ public class DeliveryTaskService {
             deliveryTaskRepository.save(deliveryTaskToCancel);
             LOGGER.debug("Delivery task cancelled for delivery task ID: {}", id);
             // publish order.failed event
-            Command cancelOrderCommand = new PublishOrderCancelledEventCommand(
-                    eventPublisher,
+            OrderCancelledEvent event = new OrderCancelledEvent(
                     deliveryTaskToCancel.getOrderId(),
                     deliveryTaskToCancel.getCourierId(),
                     cancellationReason
             );
-
-            cancelOrderCommand.execute();
+            Command stopPollingCommand = new StopPollingCommand(
+                    eventPublisher,
+                    event
+            );
+            stopPollingCommand.execute();
 
             return DeliveryTaskMapper.toCancelResponseDto(deliveryTaskToCancel);
         }
