@@ -17,11 +17,13 @@ public class StopPollingCommand implements Command {
 
     @Override
     public void execute() {
-        if (event instanceof OrderCancelledEvent cancelledEvent) {
-            // publish order_cancelled event so that the order service stop tracking courier location
+        if (event instanceof OrderCancelledEvent) {
+            OrderCancelledEvent cancelledEvent = (OrderCancelledEvent) event;
+            // publish order_cancelled event so that the order service stops tracking courier location
             eventPublisher.publishEvent(EventsConstants.ORDER_CANCELLED, cancelledEvent);
-        } else if (event instanceof OrderDeliveredEvent deliveredEvent) {
-            // publish order_delivered event so that the order service stop tracking courier location
+        } else if (event instanceof OrderDeliveredEvent) {
+            OrderDeliveredEvent deliveredEvent = (OrderDeliveredEvent) event;
+            // publish order_delivered event so that the order service stops tracking courier location
             eventPublisher.publishEvent(EventsConstants.ORDER_DELIVERED, deliveredEvent);
         }
     }
