@@ -1,6 +1,8 @@
 package com.podzilla.courier.services.courier;
 
-import com.podzilla.courier.dtos.couriers.*;
+import com.podzilla.courier.dtos.couriers.CourierResponseDto;
+import com.podzilla.courier.dtos.couriers.CreateCourierRequestDto;
+import com.podzilla.courier.dtos.couriers.UpdateCourierRequestDto;
 import com.podzilla.courier.mappers.CourierMapper;
 import com.podzilla.courier.models.Courier;
 import com.podzilla.courier.repositories.courier.CourierRepository;
@@ -16,64 +18,71 @@ import java.util.stream.Collectors;
 public class CourierService {
 
     private final CourierRepository courierRepository;
-    private static final Logger logger = LoggerFactory.getLogger(CourierService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(CourierService.class);
 
-    public CourierService(CourierRepository courierRepository) {
+    public CourierService(final CourierRepository courierRepository) {
         this.courierRepository = courierRepository;
     }
 
     public List<CourierResponseDto> getAllCouriers() {
-        logger.info("Fetching all couriers");
+        LOGGER.info("Fetching all couriers");
         List<CourierResponseDto> couriers = courierRepository.findAll().stream()
                 .map(CourierMapper::toCreateResponseDto).collect(Collectors.toList());
-        logger.info("Couriers Fetched: {}", couriers);
+        LOGGER.info("Couriers Fetched: {}", couriers);
         return couriers;
     }
 
-    public Optional<CourierResponseDto> getCourierById(String id) {
-        logger.info("Fetching courier with ID: {}", id);
+    public Optional<CourierResponseDto> getCourierById(final String id) {
+        LOGGER.info("Fetching courier with ID: {}", id);
         Optional<Courier> courier = courierRepository.findById(id);
         if (courier.isPresent()) {
-            logger.debug("Courier found with ID: {}", courier.get().getId());
+            LOGGER.debug("Courier found with ID: {}", courier.get().getId());
         } else {
-            logger.debug("Courier not found with ID: {}", id);
+            LOGGER.debug("Courier not found with ID: {}", id);
         }
         return courier.map(CourierMapper::toCreateResponseDto);
     }
 
-    public CourierResponseDto createCourier(CreateCourierRequestDto courier) {
-        logger.info("Creating new courier");
+    public CourierResponseDto createCourier(final CreateCourierRequestDto courier) {
+        LOGGER.info("Creating new courier");
         Courier newCourier = CourierMapper.toEntity(courier);
         Courier savedCourier = courierRepository.save(newCourier);
-        logger.info("Created courier with ID: {}", savedCourier.getId());
+        LOGGER.info("Created courier with ID: {}", savedCourier.getId());
         return CourierMapper.toCreateResponseDto(savedCourier);
     }
 
-    public Optional<CourierResponseDto> updateCourier(String id, UpdateCourierRequestDto courierDto) {
-        logger.info("Updating courier with ID: {}", id);
+    public Optional<CourierResponseDto> updateCourier(final String id, final UpdateCourierRequestDto courierDto) {
+        LOGGER.info("Updating courier with ID: {}", id);
         Optional<Courier> existingCourier = courierRepository.findById(id);
         if (existingCourier.isEmpty()) {
-            logger.debug("Courier not found with ID: {}", id);
+            LOGGER.debug("Courier not found with ID: {}", id);
             return Optional.empty();
         }
         Courier courier = existingCourier.get();
-        if (courierDto.getName() != null) courier.setName(courierDto.getName());
-        if (courierDto.getMobileNo() != null) courier.setMobileNo(courierDto.getMobileNo());
-        if (courierDto.getStatus() != null) courier.setStatus(courierDto.getStatus());
+        if (courierDto.getName() != null) {
+            courier.setName(courierDto.getName());
+        }
+        if (courierDto.getMobileNo() != null) {
+            courier.setMobileNo(courierDto.getMobileNo());
+        }
+        if (courierDto.getStatus() != null) {
+            courier.setStatus(courierDto.getStatus());
+        }
         Courier savedCourier = courierRepository.save(courier);
-        logger.info("Updated courier with ID: {}", savedCourier.getId());
+        LOGGER.info("Updated courier with ID: {}", savedCourier.getId());
         return Optional.of(CourierMapper.toCreateResponseDto(savedCourier));
     }
 
-    public Optional<CourierResponseDto> deleteCourier(String id) {
-        logger.info("Deleting courier with ID: {}", id);
+    public Optional<CourierResponseDto> deleteCourier(final String id) {
+        LOGGER.info("Deleting courier with ID: {}", id);
         Optional<Courier> courier = courierRepository.findById(id);
         if (courier.isPresent()) {
             courierRepository.deleteById(id);
-            logger.info("Deleted courier with ID: {}", id);
+            LOGGER.info("Deleted courier with ID: {}", id);
             return courier.map(CourierMapper::toCreateResponseDto);
         }
-        logger.debug("Courier not found with ID: {}", id);
+        LOGGER.debug("Courier not found with ID: {}", id);
         return Optional.empty();
     }
 }
+
