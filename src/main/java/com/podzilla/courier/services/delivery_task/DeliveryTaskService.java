@@ -14,11 +14,9 @@ import com.podzilla.courier.services.delivery_task.publish_command.Command;
 import com.podzilla.courier.services.delivery_task.publish_command.PublishOrderCancelledEventCommand;
 import com.podzilla.courier.services.delivery_task.publish_command.PublishOrderOutForDeliveryEventCommand;
 import com.podzilla.mq.EventPublisher;
-import com.podzilla.mq.EventsConstants;
-import com.podzilla.mq.events.OrderCancelledEvent;
-import com.podzilla.mq.events.OrderOutForDeliveryEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
@@ -35,83 +33,85 @@ public class DeliveryTaskService {
     private final IDeliveryTaskRepository deliveryTaskRepository;
     private final EventPublisher eventPublisher;
     private final Map<ConfirmationType, DeliveryConfirmationStrategy> confirmationStrategies;
-    private static final Logger logger = LoggerFactory.getLogger(DeliveryTaskService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DeliveryTaskService.class);
+    @Value("${otp.length}")
+    private int otpLength;
 
-
-    public DeliveryTaskService(IDeliveryTaskRepository deliveryTaskRepository, EventPublisher eventPublisher,
-                               Map<ConfirmationType, DeliveryConfirmationStrategy> confirmationStrategies) {
+    public DeliveryTaskService(final IDeliveryTaskRepository deliveryTaskRepository,
+                               final EventPublisher eventPublisher,
+                               final Map<ConfirmationType, DeliveryConfirmationStrategy> confirmationStrategies) {
         this.deliveryTaskRepository = deliveryTaskRepository;
         this.eventPublisher = eventPublisher;
         this.confirmationStrategies = confirmationStrategies;
     }
 
-    public DeliveryTaskResponseDto createDeliveryTask(CreateDeliveryTaskRequestDto deliveryTaskRequestDto) {
-        logger.info("Creating delivery task for order ID: {}", deliveryTaskRequestDto.getOrderId());
+    public DeliveryTaskResponseDto createDeliveryTask(final CreateDeliveryTaskRequestDto deliveryTaskRequestDto) {
+        LOGGER.info("Creating delivery task for order ID: {}", deliveryTaskRequestDto.getOrderId());
         DeliveryTask deliveryTask = DeliveryTaskMapper.toEntity(deliveryTaskRequestDto);
         DeliveryTask savedTask = deliveryTaskRepository.save(deliveryTask);
-        logger.debug("Delivery task created with ID: {}", savedTask.getId());
+        LOGGER.debug("Delivery task created with ID: {}", savedTask.getId());
         return DeliveryTaskMapper.toCreateResponseDto(savedTask);
     }
 
     public List<DeliveryTaskResponseDto> getAllDeliveryTasks() {
-        logger.info("Fetching all delivery tasks");
+        LOGGER.info("Fetching all delivery tasks");
         List<DeliveryTaskResponseDto> deliveryTasks = deliveryTaskRepository.findAll()
                 .stream()
                 .map(DeliveryTaskMapper::toCreateResponseDto)
                 .collect(Collectors.toList());
-        logger.debug("Delivery tasks fetched: {}", deliveryTasks);
+        LOGGER.debug("Delivery tasks fetched: {}", deliveryTasks);
         return deliveryTasks;
     }
 
-    public Optional<DeliveryTaskResponseDto> getDeliveryTaskById(String id) {
-        logger.info("Fetching delivery task with ID: {}", id);
+    public Optional<DeliveryTaskResponseDto> getDeliveryTaskById(final String id) {
+        LOGGER.info("Fetching delivery task with ID: {}", id);
         Optional<DeliveryTask> deliveryTask = deliveryTaskRepository.findById(id);
         if (deliveryTask.isPresent()) {
-            logger.debug("Delivery task found with ID: {}", deliveryTask.get().getId());
+            LOGGER.debug("Delivery task found with ID: {}", deliveryTask.get().getId());
         } else {
-            logger.debug("Delivery task not found with ID: {}", id);
+            LOGGER.debug("Delivery task not found with ID: {}", id);
         }
         return deliveryTask.map(DeliveryTaskMapper::toCreateResponseDto);
     }
 
-    public List<DeliveryTaskResponseDto> getDeliveryTasksByCourierId(String courierId) {
-        logger.info("Fetching delivery tasks by courier ID: {}", courierId);
+    public List<DeliveryTaskResponseDto> getDeliveryTasksByCourierId(final String courierId) {
+        LOGGER.info("Fetching delivery tasks by courier ID: {}", courierId);
         List<DeliveryTaskResponseDto> deliveryTasks = deliveryTaskRepository.findByCourierId(courierId)
                 .stream()
                 .map(DeliveryTaskMapper::toCreateResponseDto)
                 .collect(Collectors.toList());
-        logger.debug("Retrieved {} delivery tasks for courier ID: {}", deliveryTasks.size(), courierId);
+        LOGGER.debug("Retrieved {} delivery tasks for courier ID: {}", deliveryTasks.size(), courierId);
         return deliveryTasks;
     }
 
-    public List<DeliveryTaskResponseDto> getDeliveryTasksByStatus(DeliveryStatus status) {
-        logger.info("Fetching delivery tasks by status: {}", status);
+    public List<DeliveryTaskResponseDto> getDeliveryTasksByStatus(final DeliveryStatus status) {
+        LOGGER.info("Fetching delivery tasks by status: {}", status);
         List<DeliveryTaskResponseDto> deliveryTasks = deliveryTaskRepository.findByStatus(status)
                 .stream()
                 .map(DeliveryTaskMapper::toCreateResponseDto)
                 .collect(Collectors.toList());
-        logger.debug("Retrieved {} delivery tasks for status: {}", deliveryTasks.size(), status);
+        LOGGER.debug("Retrieved {} delivery tasks for status: {}", deliveryTasks.size(), status);
         return deliveryTasks;
     }
 
-    public List<DeliveryTaskResponseDto> getDeliveryTasksByOrderId(String orderId) {
-        logger.info("Fetching delivery tasks by order ID: {}", orderId);
+    public List<DeliveryTaskResponseDto> getDeliveryTasksByOrderId(final String orderId) {
+        LOGGER.info("Fetching delivery tasks by order ID: {}", orderId);
         List<DeliveryTaskResponseDto> deliveryTasks = deliveryTaskRepository.findByOrderId(orderId)
                 .stream()
                 .map(DeliveryTaskMapper::toCreateResponseDto)
                 .collect(Collectors.toList());
-        logger.debug("Retrieved {} delivery tasks for order ID: {}", deliveryTasks.size(), orderId);
+        LOGGER.debug("Retrieved {} delivery tasks for order ID: {}", deliveryTasks.size(), orderId);
         return deliveryTasks;
     }
 
-    public Optional<DeliveryTaskResponseDto> updateDeliveryTaskStatus(String id, DeliveryStatus status) {
-        logger.info("Updating delivery task with ID: {} to {}", id, status);
+    public Optional<DeliveryTaskResponseDto> updateDeliveryTaskStatus(final String id, final DeliveryStatus status) {
+        LOGGER.info("Updating delivery task with ID: {} to {}", id, status);
         Optional<DeliveryTask> updatedDeliveryTask = deliveryTaskRepository.findById(id);
         if (updatedDeliveryTask.isPresent()) {
             DeliveryTask task = updatedDeliveryTask.get();
             task.setStatus(status);
             deliveryTaskRepository.save(task);
-            logger.debug("Delivery task ID: {} updated to status: {}", id, status);
+            LOGGER.debug("Delivery task ID: {} updated to status: {}", id, status);
             // publish order.shipped event if status is OUT_FOR_DELIVERY
             if (status == DeliveryStatus.OUT_FOR_DELIVERY) {
                 Command outForDeliveryCommand = new PublishOrderOutForDeliveryEventCommand(
@@ -123,7 +123,7 @@ public class DeliveryTaskService {
                 outForDeliveryCommand.execute();
 
                 if (task.getConfirmationType() == ConfirmationType.OTP) {
-                    String otp = IntStream.range(0, 4)
+                    String otp = IntStream.range(0, otpLength)
                             .mapToObj(i -> String.valueOf(task.getId().charAt(i)))
                             .collect(Collectors.joining());
                     task.setOtp(otp);
@@ -134,47 +134,48 @@ public class DeliveryTaskService {
             }
             return Optional.of(DeliveryTaskMapper.toCreateResponseDto(updatedDeliveryTask.get()));
         }
-        logger.warn("Delivery task not found with ID: {} for status update", id);
+        LOGGER.warn("Delivery task not found with ID: {} for status update", id);
         return Optional.empty();
     }
 
-    public Pair<Double, Double> getDeliveryTaskLocation(String id) {
-        logger.info("Fetching location for delivery task with ID: {}", id);
+    public Pair<Double, Double> getDeliveryTaskLocation(final String id) {
+        LOGGER.info("Fetching location for delivery task with ID: {}", id);
         Optional<DeliveryTask> deliveryTask = deliveryTaskRepository.findById(id);
         if (deliveryTask.isPresent()) {
             Double latitude = deliveryTask.get().getCourierLatitude();
             Double longitude = deliveryTask.get().getCourierLongitude();
-            logger.debug("Location for delivery task ID: {} is ({}, {})", id, latitude, longitude);
+            LOGGER.debug("Location for delivery task ID: {} is ({}, {})", id, latitude, longitude);
             return Pair.of(latitude, longitude);
         }
-        logger.warn("Delivery task not found with ID for location: {}", id);
+        LOGGER.warn("Delivery task not found with ID for location: {}", id);
         return Pair.of(0.0, 0.0);
     }
 
-    public DeliveryTaskResponseDto updateDeliveryTaskLocation(String id, Double latitude, Double longitude) {
-        logger.info("Updating location for delivery task with ID: {} to ({}, {})", id, latitude, longitude);
+    public DeliveryTaskResponseDto updateDeliveryTaskLocation(final String id, final Double latitude,
+                                                              final Double longitude) {
+        LOGGER.info("Updating location for delivery task with ID: {} to ({}, {})", id, latitude, longitude);
         Optional<DeliveryTask> updatedDeliveryTask = deliveryTaskRepository.findById(id);
         if (updatedDeliveryTask.isPresent()) {
             DeliveryTask deliveryTask = updatedDeliveryTask.get();
             deliveryTask.setCourierLongitude(latitude);
             deliveryTask.setCourierLongitude(longitude);
             deliveryTaskRepository.save(deliveryTask);
-            logger.debug("Location updated for delivery task ID: {}", id);
+            LOGGER.debug("Location updated for delivery task ID: {}", id);
             return DeliveryTaskMapper.toCreateResponseDto(deliveryTask);
         }
-        logger.warn("Delivery task not found with ID: {} for location update", id);
+        LOGGER.warn("Delivery task not found with ID: {} for location update", id);
         return null;
     }
 
-    public CancelDeliveryTaskResponseDto cancelDeliveryTask(String id, String cancellationReason) {
-        logger.info("Cancelling delivery task with ID: {}", id);
+    public CancelDeliveryTaskResponseDto cancelDeliveryTask(final String id, final String cancellationReason) {
+        LOGGER.info("Cancelling delivery task with ID: {}", id);
         Optional<DeliveryTask> deliveryTask = deliveryTaskRepository.findById(id);
         if (deliveryTask.isPresent()) {
             DeliveryTask deliveryTaskToCancel = deliveryTask.get();
             deliveryTaskToCancel.setStatus(DeliveryStatus.CANCELLED);
             deliveryTaskToCancel.setCancellationReason(cancellationReason);
             deliveryTaskRepository.save(deliveryTaskToCancel);
-            logger.debug("Delivery task cancelled for delivery task ID: {}", id);
+            LOGGER.debug("Delivery task cancelled for delivery task ID: {}", id);
             // publish order.failed event
             Command cancelOrderCommand = new PublishOrderCancelledEventCommand(
                     eventPublisher,
@@ -187,45 +188,34 @@ public class DeliveryTaskService {
 
             return DeliveryTaskMapper.toCancelResponseDto(deliveryTaskToCancel);
         }
-        logger.warn("Delivery task not found with ID: {}", id);
+        LOGGER.warn("Delivery task not found with ID: {}", id);
         return null;
     }
 
-    public DeliveryTaskResponseDto deleteDeliveryTask(String id) {
-        logger.info("Deleting delivery task with ID: {}", id);
+    public DeliveryTaskResponseDto deleteDeliveryTask(final String id) {
+        LOGGER.info("Deleting delivery task with ID: {}", id);
         Optional<DeliveryTask> deliveryTask = deliveryTaskRepository.findById(id);
         if (deliveryTask.isPresent()) {
             deliveryTaskRepository.delete(deliveryTask.get());
-            logger.debug("Delivery task with ID: {} deleted", id);
+            LOGGER.debug("Delivery task with ID: {} deleted", id);
             return DeliveryTaskMapper.toCreateResponseDto(deliveryTask.get());
         }
-        logger.warn("Delivery task not found with ID: {} for deletion", id);
+        LOGGER.warn("Delivery task not found with ID: {} for deletion", id);
         return null;
     }
 
-    public Optional<String> updateOtp(String id, String otp) {
-        logger.info("Updating otp for delivery task with ID: {}", id);
-        DeliveryTask task = deliveryTaskRepository.findById(id).orElse(null);
-        if (task == null)
-            return Optional.empty();
-        task.setOtp(otp);
-        deliveryTaskRepository.save(task);
-        logger.debug("OTP updated for delivery task ID: {}", id);
-        return Optional.of("Updated OTP");
-    }
-
-    public Optional<String> confirmDelivery(String id, String confirmationInput) {
-        logger.info("Confirming delivery for task ID: {}", id);
+    public Optional<String> confirmDelivery(final String id, final String confirmationInput) {
+        LOGGER.info("Confirming delivery for task ID: {}", id);
         DeliveryTask task = deliveryTaskRepository.findById(id).orElse(null);
         if (task == null) {
-            logger.warn("Delivery task not found with ID: {} for customer delivery confirmation", id);
+            LOGGER.warn("Delivery task not found with ID: {} for customer delivery confirmation", id);
             return Optional.empty();
         }
 
         ConfirmationType confirmationType = task.getConfirmationType();
         DeliveryConfirmationStrategy strategy = confirmationStrategies.get(confirmationType);
         if (strategy == null) {
-            logger.error("No confirmation strategy found for type: {}", confirmationType);
+            LOGGER.error("No confirmation strategy found for type: {}", confirmationType);
             return Optional.of("Invalid confirmation type");
         }
 
@@ -236,13 +226,13 @@ public class DeliveryTaskService {
         return result;
     }
 
-    public SubmitCourierRatingResponseDto submitCourierRating(String id, Double rating) {
-        logger.info("Submitting courier rating for delivery task with ID: {}", id);
+    public SubmitCourierRatingResponseDto submitCourierRating(final String id, final Double rating) {
+        LOGGER.info("Submitting courier rating for delivery task with ID: {}", id);
         Optional<DeliveryTask> deliveryTask = deliveryTaskRepository.findById(id);
         if (deliveryTask.isPresent()) {
             DeliveryTask deliveryTaskToSubmit = deliveryTask.get();
-            if(!deliveryTaskToSubmit.getStatus().equals(DeliveryStatus.DELIVERED)) {
-                logger.error("Delivery task status is not DELIVERED");
+            if (!deliveryTaskToSubmit.getStatus().equals(DeliveryStatus.DELIVERED)) {
+                LOGGER.error("Delivery task status is not DELIVERED");
                 throw new IllegalStateException("Task must be delivered to submit a rating");
             }
             deliveryTaskToSubmit.setCourierRating(rating);
@@ -251,7 +241,7 @@ public class DeliveryTaskService {
             deliveryTaskRepository.save(deliveryTaskToSubmit);
             return DeliveryTaskMapper.toSubmitCourierRatingResponseDto(deliveryTaskToSubmit);
         }
-        logger.warn("Delivery task not found with ID: {} for courier rating", id);
+        LOGGER.warn("Delivery task not found with ID: {} for courier rating", id);
         return null;
     }
 }
