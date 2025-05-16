@@ -14,23 +14,23 @@ import java.util.Optional;
 
 @Component
 public class OtpConfirmationStrategy implements DeliveryConfirmationStrategy {
-    private static final Logger logger = LoggerFactory.getLogger(OtpConfirmationStrategy.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(OtpConfirmationStrategy.class);
     private final EventPublisher eventPublisher;
 
-    public OtpConfirmationStrategy(EventPublisher eventPublisher) {
+    public OtpConfirmationStrategy(final EventPublisher eventPublisher) {
         this.eventPublisher = eventPublisher;
     }
 
     @Override
-    public Optional<String> confirmDelivery(DeliveryTask task, String confirmationInput) {
-        logger.info("Confirming delivery with OTP for task ID: {}", task.getId());
+    public Optional<String> confirmDelivery(final DeliveryTask task, final String confirmationInput) {
+        LOGGER.info("Confirming delivery with OTP for task ID: {}", task.getId());
         if (task.getOtp() == null || !task.getOtp().equals(confirmationInput)) {
-            logger.debug("Invalid OTP for task ID: {}", task.getId());
+            LOGGER.debug("Invalid OTP for task ID: {}", task.getId());
             return Optional.of("Wrong OTP");
         }
 
         task.setStatus(DeliveryStatus.DELIVERED);
-        logger.debug("OTP confirmed for task ID: {}", task.getId());
+        LOGGER.debug("OTP confirmed for task ID: {}", task.getId());
 
         com.podzilla.mq.events.OrderDeliveredEvent event = new OrderDeliveredEvent(
                 task.getOrderId(),

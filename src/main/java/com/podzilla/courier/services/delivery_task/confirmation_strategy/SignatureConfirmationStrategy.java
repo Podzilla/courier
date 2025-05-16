@@ -10,29 +10,29 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.Optional;
 
 @Component
 public class SignatureConfirmationStrategy implements DeliveryConfirmationStrategy {
-    private static final Logger logger = LoggerFactory.getLogger(SignatureConfirmationStrategy.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SignatureConfirmationStrategy.class);
     private final EventPublisher eventPublisher;
 
-    public SignatureConfirmationStrategy(EventPublisher eventPublisher) {
+    public SignatureConfirmationStrategy(final EventPublisher eventPublisher) {
         this.eventPublisher = eventPublisher;
     }
 
     @Override
-    public Optional<String> confirmDelivery(DeliveryTask task, String confirmationInput) {
-        logger.info("Confirming delivery with signature for task ID: {}", task.getId());
+    public Optional<String> confirmDelivery(final DeliveryTask task, final String confirmationInput) {
+        LOGGER.info("Confirming delivery with signature for task ID: {}", task.getId());
         // assume signature is valid if input is non-empty
-        if (confirmationInput == null || confirmationInput.isEmpty() || !task.getSignature().equals(confirmationInput)) {
-            logger.debug("Invalid signature for task ID: {}", task.getId());
+        if (confirmationInput == null || confirmationInput.isEmpty()
+                || !task.getSignature().equals(confirmationInput)) {
+            LOGGER.debug("Invalid signature for task ID: {}", task.getId());
             return Optional.of("Invalid signature");
         }
 
         task.setStatus(DeliveryStatus.DELIVERED);
-        logger.debug("Signature confirmed for task ID: {}", task.getId());
+        LOGGER.debug("Signature confirmed for task ID: {}", task.getId());
 
         // publish order.delivered event
         OrderDeliveredEvent event = new OrderDeliveredEvent(
