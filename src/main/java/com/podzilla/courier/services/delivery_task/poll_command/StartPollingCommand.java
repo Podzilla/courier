@@ -1,4 +1,4 @@
-package com.podzilla.courier.services.delivery_task.publish_command;
+package com.podzilla.courier.services.delivery_task.poll_command;
 
 import com.podzilla.mq.EventPublisher;
 import com.podzilla.mq.EventsConstants;
@@ -9,7 +9,7 @@ public class StartPollingCommand implements Command {
     private final EventPublisher eventPublisher;
     private final OrderOutForDeliveryEvent event;
 
-    public StartPollingCommand(final EventPublisher eventPublisher, OrderOutForDeliveryEvent event) {
+    public StartPollingCommand(final EventPublisher eventPublisher, final OrderOutForDeliveryEvent event) {
         this.eventPublisher = eventPublisher;
         this.event = event;
     }

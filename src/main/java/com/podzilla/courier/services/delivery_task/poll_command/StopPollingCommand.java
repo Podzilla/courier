@@ -1,4 +1,4 @@
-package com.podzilla.courier.services.delivery_task.publish_command;
+package com.podzilla.courier.services.delivery_task.poll_command;
 
 import com.podzilla.mq.EventPublisher;
 import com.podzilla.mq.EventsConstants;
@@ -9,8 +9,7 @@ public class StopPollingCommand implements Command {
     private final EventPublisher eventPublisher;
     private final Object event;
 
-    public StopPollingCommand(final EventPublisher eventPublisher,
-                              Object event) {
+    public StopPollingCommand(final EventPublisher eventPublisher, final Object event) {
         this.eventPublisher = eventPublisher;
         this.event = event;
     }

@@ -2,7 +2,7 @@ package com.podzilla.courier.services.delivery_task.confirmation_strategy;
 
 import com.podzilla.courier.models.DeliveryStatus;
 import com.podzilla.courier.models.DeliveryTask;
-import com.podzilla.courier.services.delivery_task.publish_command.StopPollingCommand;
+import com.podzilla.courier.services.delivery_task.poll_command.StopPollingCommand;
 import com.podzilla.mq.EventPublisher;
 import com.podzilla.mq.events.OrderDeliveredEvent;
 import org.slf4j.Logger;
