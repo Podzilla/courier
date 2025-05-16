@@ -10,6 +10,9 @@ import com.podzilla.courier.models.DeliveryStatus;
 import com.podzilla.courier.models.DeliveryTask;
 import com.podzilla.courier.repositories.delivery_task.IDeliveryTaskRepository;
 import com.podzilla.courier.services.delivery_task.confirmation_strategy.DeliveryConfirmationStrategy;
+import com.podzilla.courier.services.delivery_task.publish_command.Command;
+import com.podzilla.courier.services.delivery_task.publish_command.PublishOrderCancelledEventCommand;
+import com.podzilla.courier.services.delivery_task.publish_command.PublishOrderOutForDeliveryEventCommand;
 import com.podzilla.mq.EventPublisher;
 import com.podzilla.mq.EventsConstants;
 import com.podzilla.mq.events.OrderCancelledEvent;
@@ -111,8 +114,13 @@ public class DeliveryTaskService {
             logger.debug("Delivery task ID: {} updated to status: {}", id, status);
             // publish order.shipped event if status is OUT_FOR_DELIVERY
             if (status == DeliveryStatus.OUT_FOR_DELIVERY) {
-                OrderOutForDeliveryEvent event = new OrderOutForDeliveryEvent(task.getOrderId(), task.getCourierId());
-                eventPublisher.publishEvent(EventsConstants.ORDER_OUT_FOR_DELIVERY, event);
+                Command outForDeliveryCommand = new PublishOrderOutForDeliveryEventCommand(
+                        eventPublisher,
+                        task.getOrderId(),
+                        task.getCourierId()
+                );
+
+                outForDeliveryCommand.execute();
 
                 if (task.getConfirmationType() == ConfirmationType.OTP) {
                     String otp = IntStream.range(0, 4)
@@ -168,12 +176,15 @@ public class DeliveryTaskService {
             deliveryTaskRepository.save(deliveryTaskToCancel);
             logger.debug("Delivery task cancelled for delivery task ID: {}", id);
             // publish order.failed event
-            OrderCancelledEvent event = new OrderCancelledEvent(
+            Command cancelOrderCommand = new PublishOrderCancelledEventCommand(
+                    eventPublisher,
                     deliveryTaskToCancel.getOrderId(),
                     deliveryTaskToCancel.getCourierId(),
                     cancellationReason
             );
-            eventPublisher.publishEvent(EventsConstants.ORDER_CANCELLED, event);
+
+            cancelOrderCommand.execute();
+
             return DeliveryTaskMapper.toCancelResponseDto(deliveryTaskToCancel);
         }
         logger.warn("Delivery task not found with ID: {}", id);
