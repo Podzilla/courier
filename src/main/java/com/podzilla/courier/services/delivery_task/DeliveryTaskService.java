@@ -10,6 +10,9 @@ import com.podzilla.courier.models.DeliveryStatus;
 import com.podzilla.courier.models.DeliveryTask;
 import com.podzilla.courier.repositories.delivery_task.IDeliveryTaskRepository;
 import com.podzilla.courier.services.delivery_task.confirmation_strategy.DeliveryConfirmationStrategy;
+import com.podzilla.courier.services.delivery_task.confirmation_strategy.OtpConfirmationStrategy;
+import com.podzilla.courier.services.delivery_task.confirmation_strategy.QrCodeConfirmationStrategy;
+import com.podzilla.courier.services.delivery_task.confirmation_strategy.SignatureConfirmationStrategy;
 import com.podzilla.courier.services.delivery_task.poll_command.Command;
 import com.podzilla.courier.services.delivery_task.poll_command.StopPollingCommand;
 import com.podzilla.courier.services.delivery_task.poll_command.StartPollingCommand;
@@ -24,7 +27,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -34,17 +36,14 @@ public class DeliveryTaskService {
 
     private final IDeliveryTaskRepository deliveryTaskRepository;
     private final EventPublisher eventPublisher;
-    private final Map<ConfirmationType, DeliveryConfirmationStrategy> confirmationStrategies;
     private static final Logger LOGGER = LoggerFactory.getLogger(DeliveryTaskService.class);
     @Value("${otp.length}")
     private int otpLength;
 
     public DeliveryTaskService(final IDeliveryTaskRepository deliveryTaskRepository,
-                               final EventPublisher eventPublisher,
-                               final Map<ConfirmationType, DeliveryConfirmationStrategy> confirmationStrategies) {
+                               final EventPublisher eventPublisher) {
         this.deliveryTaskRepository = deliveryTaskRepository;
         this.eventPublisher = eventPublisher;
-        this.confirmationStrategies = confirmationStrategies;
     }
 
     public DeliveryTaskResponseDto createDeliveryTask(final CreateDeliveryTaskRequestDto deliveryTaskRequestDto) {
@@ -140,32 +139,32 @@ public class DeliveryTaskService {
         return Optional.empty();
     }
 
-    public Pair<Double, Double> getDeliveryTaskLocation(final String id) {
-        LOGGER.info("Fetching location for delivery task with ID: {}", id);
-        Optional<DeliveryTask> deliveryTask = deliveryTaskRepository.findById(id);
+    public Pair<Double, Double> getDeliveryTaskLocation(final String orderId) {
+        LOGGER.info("Fetching location for delivery task with order id: {}", orderId);
+        Optional<DeliveryTask> deliveryTask = deliveryTaskRepository.findByOrderId(orderId).stream().findFirst();
         if (deliveryTask.isPresent()) {
             Double latitude = deliveryTask.get().getCourierLatitude();
             Double longitude = deliveryTask.get().getCourierLongitude();
-            LOGGER.debug("Location for delivery task ID: {} is ({}, {})", id, latitude, longitude);
+            LOGGER.debug("Location for delivery task with order id: {} is ({}, {})", orderId, latitude, longitude);
             return Pair.of(latitude, longitude);
         }
-        LOGGER.warn("Delivery task not found with ID for location: {}", id);
+        LOGGER.warn("Delivery task not found with order id: {} for location", orderId);
         return Pair.of(0.0, 0.0);
     }
 
-    public DeliveryTaskResponseDto updateDeliveryTaskLocation(final String id, final Double latitude,
+    public DeliveryTaskResponseDto updateDeliveryTaskLocation(final String orderId, final Double latitude,
                                                               final Double longitude) {
-        LOGGER.info("Updating location for delivery task with ID: {} to ({}, {})", id, latitude, longitude);
-        Optional<DeliveryTask> updatedDeliveryTask = deliveryTaskRepository.findById(id);
+        LOGGER.info("Updating location for delivery task with order id: {} to ({}, {})", orderId, latitude, longitude);
+        Optional<DeliveryTask> updatedDeliveryTask = deliveryTaskRepository.findByOrderId(orderId).stream().findFirst();
         if (updatedDeliveryTask.isPresent()) {
             DeliveryTask deliveryTask = updatedDeliveryTask.get();
             deliveryTask.setCourierLongitude(latitude);
             deliveryTask.setCourierLongitude(longitude);
             deliveryTaskRepository.save(deliveryTask);
-            LOGGER.debug("Location updated for delivery task ID: {}", id);
+            LOGGER.debug("Location updated for delivery task with order id: {}", orderId);
             return DeliveryTaskMapper.toCreateResponseDto(deliveryTask);
         }
-        LOGGER.warn("Delivery task not found with ID: {} for location update", id);
+        LOGGER.warn("Delivery task not found with order id: {} for location update", orderId);
         return null;
     }
 
@@ -217,7 +216,9 @@ public class DeliveryTaskService {
         }
 
         ConfirmationType confirmationType = task.getConfirmationType();
-        DeliveryConfirmationStrategy strategy = confirmationStrategies.get(confirmationType);
+        DeliveryConfirmationStrategy strategy = confirmationType.equals(ConfirmationType.OTP)? new OtpConfirmationStrategy(eventPublisher):
+                confirmationType.equals(ConfirmationType.QR_CODE)? new QrCodeConfirmationStrategy(eventPublisher):
+                        confirmationType.equals(ConfirmationType.SIGNATURE)? new SignatureConfirmationStrategy(eventPublisher): null;
         if (strategy == null) {
             LOGGER.error("No confirmation strategy found for type: {}", confirmationType);
             return Optional.of("Invalid confirmation type");
