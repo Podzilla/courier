@@ -115,28 +115,28 @@ public class DeliveryTaskController {
         return ResponseEntity.ok(deliveryTaskService.getDeliveryTasksByOrderId(orderId));
     }
 
-    @GetMapping("/{id}/location")
+    @GetMapping("/{orderId}/location")
     @Operation(summary = "Get task location", description = "Retrieves coordinates of a delivery task")
     @ApiResponse(responseCode = "200", description = "Location retrieved successfully")
     @ApiResponse(responseCode = "404", description = "Task not found")
     public ResponseEntity<Pair<Double, Double>> getDeliveryTaskLocation(
-            @Parameter(description = "ID of the delivery task")
-            @PathVariable final String id) {
-        LOGGER.info("Received request to get the location of delivery task with id {}", id);
-        return ResponseEntity.ok(deliveryTaskService.getDeliveryTaskLocation(id));
+            @Parameter(description = "ID of the order")
+            @PathVariable final String orderId) {
+        LOGGER.info("Received request to get the location of delivery task with order id {}", orderId);
+        return ResponseEntity.ok(deliveryTaskService.getDeliveryTaskLocation(orderId));
     }
 
-    @PatchMapping("/{id}/location")
+    @PatchMapping("/{orderId}/location")
     @Operation(summary = "Update task location", description = "Updates coordinates of a delivery task")
     @ApiResponse(responseCode = "200", description = "Location updated successfully")
     public ResponseEntity<DeliveryTaskResponseDto> updateDeliveryTaskLocation(
-            @Parameter(description = "ID of the delivery task")
-            @PathVariable final String id,
+            @Parameter(description = "ID of the order")
+            @PathVariable final String orderId,
             @RequestBody(description = "New coordinates data")
             @org.springframework.web.bind.annotation.RequestBody final LocationUpdateDto locationUpdateDto) {
-        LOGGER.info("Received request to update the location of delivery task with id {}", id);
+        LOGGER.info("Received request to update the location of delivery task with order id {}", orderId);
         return ResponseEntity.ok(deliveryTaskService.updateDeliveryTaskLocation(
-                id,
+                orderId,
                 locationUpdateDto.getLatitude(),
                 locationUpdateDto.getLongitude()));
     }

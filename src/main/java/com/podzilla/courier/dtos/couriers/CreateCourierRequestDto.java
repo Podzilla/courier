@@ -3,7 +3,6 @@ package com.podzilla.courier.dtos.couriers;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NonNull;
 
 @Getter
 @AllArgsConstructor
