@@ -1,5 +1,6 @@
 package com.podzilla.courier.events;
 
+import com.podzilla.courier.dtos.delivery_tasks.CreateDeliveryTaskRequestDto;
 import com.podzilla.courier.services.delivery_task.DeliveryTaskService;
 import com.podzilla.mq.EventsConstants;
 import com.podzilla.mq.events.BaseEvent;
@@ -19,8 +20,9 @@ public class CourierAssignmentEventConsumer {
     public void handleEvent(BaseEvent event) {
         if(event instanceof OrderAssignedToCourierEvent) {
             OrderAssignedToCourierEvent courierEvent = (OrderAssignedToCourierEvent) event;
-//            deliveryTaskService.createDeliveryTask(courierEvent.getOrderId(), courierEvent.getCourierId(),
-//                    courierEvent.getPrice(), courierEvent.getOrderLatitude(), courierEvent.getOrderLongitude());
+            CreateDeliveryTaskRequestDto deliveryTask = new CreateDeliveryTaskRequestDto(courierEvent.getOrderId(), courierEvent.getCourierId(),
+                    courierEvent.getPrice(), courierEvent.getOrderLatitude(), courierEvent.getOrderLongitude());
+            deliveryTaskService.createDeliveryTask(deliveryTask);
         }
     }
 }

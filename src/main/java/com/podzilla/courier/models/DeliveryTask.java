@@ -4,6 +4,7 @@ import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
@@ -13,7 +14,7 @@ public class DeliveryTask {
     private String id;
     private String orderId;
     private String courierId;
-    private Double price;
+    private BigDecimal price;
     private DeliveryStatus status;
     private Double orderLatitude;
     private Double orderLongitude;

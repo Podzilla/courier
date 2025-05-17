@@ -4,6 +4,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.math.BigDecimal;
+
 @Getter
 @AllArgsConstructor
 public class CreateDeliveryTaskRequestDto {
@@ -14,7 +16,7 @@ public class CreateDeliveryTaskRequestDto {
     private String courierId;
 
     @NotNull(message = "Price is required")
-    private double price;
+    private BigDecimal price;
 
     @NotNull(message = "Order latitude is required")
     private double orderLatitude;
