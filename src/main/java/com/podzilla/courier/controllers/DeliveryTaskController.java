@@ -1,13 +1,14 @@
 package com.podzilla.courier.controllers;
 
-import com.podzilla.courier.dtos.delivery_tasks.SubmitCourierRatingResponseDto;
-import com.podzilla.courier.dtos.delivery_tasks.SubmitCourierRatingRequestDto;
-import com.podzilla.courier.dtos.delivery_tasks.CancelDeliveryTaskRequestDto;
-import com.podzilla.courier.dtos.delivery_tasks.LocationUpdateDto;
-import com.podzilla.courier.dtos.delivery_tasks.CancelDeliveryTaskResponseDto;
 import com.podzilla.courier.dtos.delivery_tasks.CreateDeliveryTaskRequestDto;
 import com.podzilla.courier.dtos.delivery_tasks.DeliveryTaskResponseDto;
 import com.podzilla.courier.dtos.delivery_tasks.UpdateDeliveryStatusRequestDto;
+import com.podzilla.courier.dtos.delivery_tasks.SubmitCourierRatingResponseDto;
+import com.podzilla.courier.dtos.delivery_tasks.CancelDeliveryTaskRequestDto;
+import com.podzilla.courier.dtos.delivery_tasks.CancelDeliveryTaskResponseDto;
+import com.podzilla.courier.dtos.delivery_tasks.ConfirmDeliveryDto;
+import com.podzilla.courier.dtos.delivery_tasks.LocationUpdateDto;
+import com.podzilla.courier.dtos.delivery_tasks.SubmitCourierRatingRequestDto;
 import com.podzilla.courier.models.DeliveryStatus;
 import com.podzilla.courier.services.delivery_task.DeliveryTaskService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -183,9 +184,9 @@ public class DeliveryTaskController {
             @Parameter(description = "ID of the delivery task")
             @PathVariable final String id,
             @RequestBody(description = "Confirmation input (e.g., OTP, QR code, or signature)")
-            @org.springframework.web.bind.annotation.RequestBody final String confirmationInput) {
+            @org.springframework.web.bind.annotation.RequestBody final ConfirmDeliveryDto confirmDeliveryDto) {
         LOGGER.info("Received request to confirm delivery for task ID: {}", id);
-        return deliveryTaskService.confirmDelivery(id, confirmationInput)
+        return deliveryTaskService.confirmDelivery(id, confirmDeliveryDto.getConfirmationInput())
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }

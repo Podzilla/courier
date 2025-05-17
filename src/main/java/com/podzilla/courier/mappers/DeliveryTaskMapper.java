@@ -8,31 +8,33 @@ import com.podzilla.courier.models.DeliveryTask;
 
 public class DeliveryTaskMapper {
 
-    public static DeliveryTask toEntity(CreateDeliveryTaskRequestDto dto) {
+    public static DeliveryTask toEntity(final CreateDeliveryTaskRequestDto dto) {
         DeliveryTask task = new DeliveryTask();
         task.setOrderId(dto.getOrderId());
         task.setCourierId(dto.getCourierId());
-        task.setPrice(dto.getPrice());
+        task.setTotalAmount(dto.getTotalAmount());
         task.setOrderLatitude(dto.getOrderLatitude());
         task.setOrderLongitude(dto.getOrderLongitude());
+        task.setConfirmationType(dto.getConfirmationType());
         return task;
     }
 
-    public static DeliveryTaskResponseDto toCreateResponseDto(DeliveryTask task) {
+    public static DeliveryTaskResponseDto toCreateResponseDto(final DeliveryTask task) {
         return new DeliveryTaskResponseDto(
                 task.getId(),
                 task.getOrderId(),
                 task.getCourierId(),
-                task.getPrice(),
+                task.getTotalAmount(),
                 task.getStatus(),
                 task.getOrderLatitude(),
                 task.getOrderLongitude(),
                 task.getCourierLatitude(),
-                task.getCourierLongitude()
+                task.getCourierLongitude(),
+                task.getConfirmationType()
         );
     }
 
-    public static CancelDeliveryTaskResponseDto toCancelResponseDto(DeliveryTask task) {
+    public static CancelDeliveryTaskResponseDto toCancelResponseDto(final DeliveryTask task) {
         return new CancelDeliveryTaskResponseDto(
                 task.getId(),
                 task.getOrderId(),
@@ -41,7 +43,7 @@ public class DeliveryTaskMapper {
         );
     }
 
-    public static SubmitCourierRatingResponseDto toSubmitCourierRatingResponseDto(DeliveryTask task) {
+    public static SubmitCourierRatingResponseDto toSubmitCourierRatingResponseDto(final DeliveryTask task) {
         return new SubmitCourierRatingResponseDto(
                 task.getId(),
                 task.getOrderId(),

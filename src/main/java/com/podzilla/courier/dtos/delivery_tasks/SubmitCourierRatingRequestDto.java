@@ -6,6 +6,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.math.BigDecimal;
+
 @Getter
 @AllArgsConstructor
 public class SubmitCourierRatingRequestDto {
@@ -13,5 +15,5 @@ public class SubmitCourierRatingRequestDto {
     @NotNull(message = "Rating is required")
     @Min(value = 1, message = "Rating must be at least 1")
     @Max(value = 5, message = "Rating must be at most 5")
-    private Double rating;
+    private BigDecimal rating;
 }
