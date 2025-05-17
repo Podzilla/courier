@@ -6,7 +6,8 @@ import com.podzilla.mq.events.OrderAssignedToCourierEvent.ConfirmationType;
 
 import java.math.BigDecimal;
 
-public record DeliveryTaskResponseDto(String id, String orderId, String courierId, BigDecimal totalAmount, DeliveryStatus status,
-                                      Double orderLatitude, Double orderLongitude, Double courierLatitude,
-                                      Double courierLongitude, ConfirmationType confirmationType) {
+public record DeliveryTaskResponseDto(String id, String orderId, String courierId, BigDecimal totalAmount,
+                                      DeliveryStatus status, Double orderLatitude, Double orderLongitude,
+                                      Double courierLatitude, Double courierLongitude,
+                                      ConfirmationType confirmationType) {
 }

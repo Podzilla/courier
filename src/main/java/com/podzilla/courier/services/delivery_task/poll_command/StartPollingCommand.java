@@ -19,12 +19,14 @@ public class StartPollingCommand implements Command {
         this.deliveryTaskRepository = deliveryTaskRepository;
     }
 
+    @SuppressWarnings({"checkstyle:MagicNumber", "checkstyle:MissingSwitchDefault"})
     @Override
     public void execute() {
         DeliveryTask deliveryTask = deliveryTaskRepository.findByOrderId(event.getOrderId())
                 .stream()
                 .findFirst()
-                .orElseThrow(() -> new IllegalStateException("No DeliveryTask found for orderId: " + event.getOrderId()));
+                .orElseThrow(() -> new IllegalStateException("No DeliveryTask found for orderId: "
+                        + event.getOrderId()));
 
         switch (deliveryTask.getConfirmationType()) {
             case OTP:
