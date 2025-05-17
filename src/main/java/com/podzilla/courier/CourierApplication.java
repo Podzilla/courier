@@ -10,8 +10,8 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 @ComponentScan(basePackages = {"com.podzilla.courier", "com.podzilla.mq"})
 public class CourierApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(CourierApplication.class, args);
-	}
+    public static void main(final String[] args) {
+        SpringApplication.run(CourierApplication.class, args);
+    }
 
 }

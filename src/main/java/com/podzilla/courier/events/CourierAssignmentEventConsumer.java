@@ -20,9 +20,14 @@ public class CourierAssignmentEventConsumer {
     public void handleEvent(BaseEvent event) {
         if(event instanceof OrderAssignedToCourierEvent) {
             OrderAssignedToCourierEvent courierEvent = (OrderAssignedToCourierEvent) event;
-            CreateDeliveryTaskRequestDto deliveryTask = new CreateDeliveryTaskRequestDto(courierEvent.getOrderId(), courierEvent.getCourierId(),
-                    courierEvent.getTotalAmount(), courierEvent.getOrderLatitude(),
-                    courierEvent.getOrderLongitude(), courierEvent.getConfirmationType(), courierEvent.getSignature());
+            CreateDeliveryTaskRequestDto deliveryTask = new CreateDeliveryTaskRequestDto(
+                    courierEvent.getOrderId(),
+                    courierEvent.getCourierId(),
+                    courierEvent.getTotalAmount(),
+                    courierEvent.getOrderLatitude(),
+                    courierEvent.getOrderLongitude(),
+                    courierEvent.getConfirmationType(),
+                    courierEvent.getSignature());
             deliveryTaskService.createDeliveryTask(deliveryTask);
         }
     }
