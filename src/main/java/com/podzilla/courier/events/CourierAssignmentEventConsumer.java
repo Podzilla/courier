@@ -17,11 +17,17 @@ public class CourierAssignmentEventConsumer {
     }
 
     @RabbitListener(queues = EventsConstants.COURIER_ORDER_EVENT_QUEUE)
+    @RabbitListener(queues = EventsConstants.COURIER_ORDER_EVENT_QUEUE)
     public void handleEvent(final BaseEvent event) {
-        if (event instanceof OrderAssignedToCourierEvent courierEvent) {
-            CreateDeliveryTaskRequestDto deliveryTask = new CreateDeliveryTaskRequestDto(courierEvent.getOrderId(),
+        if (event instanceof OrderAssignedToCourierEvent) {
+            OrderAssignedToCourierEvent courierEvent = (OrderAssignedToCourierEvent) event;
+            CreateDeliveryTaskRequestDto deliveryTask = new CreateDeliveryTaskRequestDto(
+                    courierEvent.getOrderId(),
                     courierEvent.getCourierId(),
-                    courierEvent.getPrice(), courierEvent.getOrderLatitude(), courierEvent.getOrderLongitude());
+                    courierEvent.getPrice(),
+                    courierEvent.getOrderLatitude(),
+                    courierEvent.getOrderLongitude()
+            );
             deliveryTaskService.createDeliveryTask(deliveryTask);
         }
     }
