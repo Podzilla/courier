@@ -216,9 +216,11 @@ public class DeliveryTaskService {
         }
 
         ConfirmationType confirmationType = task.getConfirmationType();
-        DeliveryConfirmationStrategy strategy = confirmationType.equals(ConfirmationType.OTP)? new OtpConfirmationStrategy(eventPublisher):
-                confirmationType.equals(ConfirmationType.QR_CODE)? new QrCodeConfirmationStrategy(eventPublisher):
-                        confirmationType.equals(ConfirmationType.SIGNATURE)? new SignatureConfirmationStrategy(eventPublisher): null;
+        DeliveryConfirmationStrategy strategy = confirmationType.equals(ConfirmationType.OTP)
+                ? new OtpConfirmationStrategy(eventPublisher)
+                : confirmationType.equals(ConfirmationType.QR_CODE)
+                ? new QrCodeConfirmationStrategy(eventPublisher) : confirmationType.equals(ConfirmationType.SIGNATURE)
+                ? new SignatureConfirmationStrategy(eventPublisher) : null;
         if (strategy == null) {
             LOGGER.error("No confirmation strategy found for type: {}", confirmationType);
             return Optional.of("Invalid confirmation type");
