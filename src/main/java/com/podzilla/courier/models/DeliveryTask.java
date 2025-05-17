@@ -20,11 +20,14 @@ public class DeliveryTask {
     private Double courierLatitude;
     private Double courierLongitude;
     private String otp;
+    private String qrCode;
+    private String signature;
     private String cancellationReason;
     private Double courierRating;
     private LocalDateTime ratingTimestamp;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private ConfirmationType confirmationType;
 
     public DeliveryTask() {
         this.status = DeliveryStatus.ASSIGNED;
