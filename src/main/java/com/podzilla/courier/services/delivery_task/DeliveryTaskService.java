@@ -5,7 +5,6 @@ import com.podzilla.courier.dtos.delivery_tasks.CreateDeliveryTaskRequestDto;
 import com.podzilla.courier.dtos.delivery_tasks.DeliveryTaskResponseDto;
 import com.podzilla.courier.dtos.delivery_tasks.SubmitCourierRatingResponseDto;
 import com.podzilla.courier.mappers.DeliveryTaskMapper;
-import com.podzilla.courier.models.ConfirmationType;
 import com.podzilla.courier.models.DeliveryStatus;
 import com.podzilla.courier.models.DeliveryTask;
 import com.podzilla.courier.repositories.delivery_task.IDeliveryTaskRepository;
@@ -17,6 +16,7 @@ import com.podzilla.courier.services.delivery_task.poll_command.Command;
 import com.podzilla.courier.services.delivery_task.poll_command.StopPollingCommand;
 import com.podzilla.courier.services.delivery_task.poll_command.StartPollingCommand;
 import com.podzilla.mq.EventPublisher;
+import com.podzilla.mq.events.OrderAssignedToCourierEvent.ConfirmationType;
 import com.podzilla.mq.events.OrderCancelledEvent;
 import com.podzilla.mq.events.OrderOutForDeliveryEvent;
 import org.slf4j.Logger;
@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -119,7 +120,8 @@ public class DeliveryTaskService {
                         task.getCourierId());
                 Command startPollingCommand = new StartPollingCommand(
                         eventPublisher,
-                        event
+                        event,
+                        deliveryTaskRepository
                 );
                 startPollingCommand.execute();
 
@@ -231,7 +233,7 @@ public class DeliveryTaskService {
         return result;
     }
 
-    public SubmitCourierRatingResponseDto submitCourierRating(final String id, final Double rating) {
+    public SubmitCourierRatingResponseDto submitCourierRating(final String id, final BigDecimal rating) {
         LOGGER.info("Submitting courier rating for delivery task with ID: {}", id);
         Optional<DeliveryTask> deliveryTask = deliveryTaskRepository.findById(id);
         if (deliveryTask.isPresent()) {

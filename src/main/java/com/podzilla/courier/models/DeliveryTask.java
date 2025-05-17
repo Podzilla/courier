@@ -1,5 +1,6 @@
 package com.podzilla.courier.models;
 
+import com.podzilla.mq.events.OrderAssignedToCourierEvent.ConfirmationType;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -14,7 +15,7 @@ public class DeliveryTask {
     private String id;
     private String orderId;
     private String courierId;
-    private BigDecimal price;
+    private BigDecimal totalAmount;
     private DeliveryStatus status;
     private Double orderLatitude;
     private Double orderLongitude;
@@ -24,7 +25,7 @@ public class DeliveryTask {
     private String qrCode;
     private String signature;
     private String cancellationReason;
-    private Double courierRating;
+    private BigDecimal courierRating;
     private LocalDateTime ratingTimestamp;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

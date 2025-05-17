@@ -12,9 +12,10 @@ public class DeliveryTaskMapper {
         DeliveryTask task = new DeliveryTask();
         task.setOrderId(dto.getOrderId());
         task.setCourierId(dto.getCourierId());
-        task.setPrice(dto.getPrice());
+        task.setTotalAmount(dto.getTotalAmount());
         task.setOrderLatitude(dto.getOrderLatitude());
         task.setOrderLongitude(dto.getOrderLongitude());
+        task.setConfirmationType(dto.getConfirmationType());
         return task;
     }
 
@@ -23,12 +24,13 @@ public class DeliveryTaskMapper {
                 task.getId(),
                 task.getOrderId(),
                 task.getCourierId(),
-                task.getPrice(),
+                task.getTotalAmount(),
                 task.getStatus(),
                 task.getOrderLatitude(),
                 task.getOrderLongitude(),
                 task.getCourierLatitude(),
-                task.getCourierLongitude()
+                task.getCourierLongitude(),
+                task.getConfirmationType()
         );
     }
 

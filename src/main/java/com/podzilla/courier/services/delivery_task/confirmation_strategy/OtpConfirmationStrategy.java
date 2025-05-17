@@ -9,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
 import java.util.Optional;
 
 @Component
@@ -35,7 +34,7 @@ public class OtpConfirmationStrategy implements DeliveryConfirmationStrategy {
         OrderDeliveredEvent event = new OrderDeliveredEvent(
                 task.getOrderId(),
                 task.getCourierId(),
-                task.getCourierRating() != null ? BigDecimal.valueOf(task.getCourierRating()) : null
+                task.getCourierRating()
         );
         StopPollingCommand stopPollingCommand = new StopPollingCommand(eventPublisher, event);
         stopPollingCommand.execute();
