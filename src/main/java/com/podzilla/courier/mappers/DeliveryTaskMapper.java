@@ -16,6 +16,7 @@ public class DeliveryTaskMapper {
         task.setOrderLatitude(dto.getOrderLatitude());
         task.setOrderLongitude(dto.getOrderLongitude());
         task.setConfirmationType(dto.getConfirmationType());
+        task.setSignature(dto.getSignature());
         return task;
     }
 

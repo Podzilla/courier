@@ -31,4 +31,9 @@ public class CourierAssignmentEventConsumer {
             deliveryTaskService.createDeliveryTask(deliveryTask);
         }
     }
+
+    @RabbitListener(queues = EventsConstants.COURIER_USER_EVENT_QUEUE)
+    public void handleUserEvent(final BaseEvent event) {
+        System.out.println("Received user event: " + event);
+    }
 }

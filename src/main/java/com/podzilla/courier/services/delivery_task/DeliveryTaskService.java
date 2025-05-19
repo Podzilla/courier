@@ -145,8 +145,11 @@ public class DeliveryTaskService {
         LOGGER.info("Fetching location for delivery task with order id: {}", orderId);
         Optional<DeliveryTask> deliveryTask = deliveryTaskRepository.findByOrderId(orderId).stream().findFirst();
         if (deliveryTask.isPresent()) {
-            Double latitude = deliveryTask.get().getCourierLatitude();
-            Double longitude = deliveryTask.get().getCourierLongitude();
+            Double latitude = deliveryTask.get().getCourierLatitude() + 0.01;
+            Double longitude = deliveryTask.get().getCourierLongitude() + 0.01;
+            deliveryTask.get().setCourierLatitude(latitude);
+            deliveryTask.get().setCourierLongitude(longitude);
+            deliveryTaskRepository.save(deliveryTask.get());
             LOGGER.debug("Location for delivery task with order id: {} is ({}, {})", orderId, latitude, longitude);
             return Pair.of(latitude, longitude);
         }
