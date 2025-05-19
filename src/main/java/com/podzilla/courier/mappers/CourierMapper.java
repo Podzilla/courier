@@ -2,7 +2,6 @@ package com.podzilla.courier.mappers;
 
 import com.podzilla.courier.dtos.couriers.CourierResponseDto;
 import com.podzilla.courier.dtos.couriers.CreateCourierRequestDto;
-import com.podzilla.courier.dtos.couriers.UpdateCourierRequestDto;
 import com.podzilla.courier.models.Courier;
 
 public class CourierMapper {
