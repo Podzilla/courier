@@ -16,8 +16,8 @@ import com.podzilla.courier.services.delivery_task.poll_command.Command;
 import com.podzilla.courier.services.delivery_task.poll_command.StopPollingCommand;
 import com.podzilla.courier.services.delivery_task.poll_command.StartPollingCommand;
 import com.podzilla.mq.EventPublisher;
-import com.podzilla.mq.events.OrderAssignedToCourierEvent.ConfirmationType;
-import com.podzilla.mq.events.OrderCancelledEvent;
+import com.podzilla.mq.events.ConfirmationType;
+import com.podzilla.mq.events.OrderDeliveryFailedEvent;
 import com.podzilla.mq.events.OrderOutForDeliveryEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -180,7 +180,7 @@ public class DeliveryTaskService {
             deliveryTaskRepository.save(deliveryTaskToCancel);
             LOGGER.debug("Delivery task cancelled for delivery task ID: {}", id);
             // publish order.failed event
-            OrderCancelledEvent event = new OrderCancelledEvent(
+            OrderDeliveryFailedEvent event = new OrderDeliveryFailedEvent(
                     deliveryTaskToCancel.getOrderId(),
                     deliveryTaskToCancel.getCourierId(),
                     cancellationReason

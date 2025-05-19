@@ -1,6 +1,6 @@
 package com.podzilla.courier.dtos.delivery_tasks;
 
-import com.podzilla.mq.events.OrderAssignedToCourierEvent.ConfirmationType;
+import com.podzilla.mq.events.ConfirmationType;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

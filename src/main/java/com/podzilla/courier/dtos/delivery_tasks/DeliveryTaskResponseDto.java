@@ -2,7 +2,7 @@ package com.podzilla.courier.dtos.delivery_tasks;
 
 
 import com.podzilla.courier.models.DeliveryStatus;
-import com.podzilla.mq.events.OrderAssignedToCourierEvent.ConfirmationType;
+import com.podzilla.mq.events.ConfirmationType;
 
 import java.math.BigDecimal;
 
