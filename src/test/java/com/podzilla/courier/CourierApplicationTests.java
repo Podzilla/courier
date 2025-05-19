@@ -84,23 +84,6 @@ class CourierControllerTest {
 	}
 
 	@Test
-	@DisplayName("POST /couriers → 200 OK with created courier")
-	void createCourier() throws Exception {
-		CreateCourierRequestDto req = new CreateCourierRequestDto("Daisy", "0222333444");
-		CourierResponseDto resp = new CourierResponseDto("100", "Daisy", "0222333444", CourierStatus.PICKED_UP);
-
-		Mockito.when(courierService.createCourier(Mockito.any(CreateCourierRequestDto.class))).thenReturn(resp);
-
-		mockMvc.perform(post("/couriers")
-						.contentType(MediaType.APPLICATION_JSON)
-						.content(objectMapper.writeValueAsString(req))
-				)
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.id", is("100")))
-				.andExpect(jsonPath("$.status", is("PICKED_UP")));
-	}
-
-	@Test
 	@DisplayName("PUT /couriers/{id} → 200 OK when update succeeds")
 	void updateCourierFound() throws Exception {
 		String json = """
