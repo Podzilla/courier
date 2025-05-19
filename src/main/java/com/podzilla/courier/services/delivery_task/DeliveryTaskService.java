@@ -160,7 +160,7 @@ public class DeliveryTaskService {
         Optional<DeliveryTask> updatedDeliveryTask = deliveryTaskRepository.findByOrderId(orderId).stream().findFirst();
         if (updatedDeliveryTask.isPresent()) {
             DeliveryTask deliveryTask = updatedDeliveryTask.get();
-            deliveryTask.setCourierLongitude(latitude);
+            deliveryTask.setCourierLatitude(latitude);
             deliveryTask.setCourierLongitude(longitude);
             deliveryTaskRepository.save(deliveryTask);
             LOGGER.debug("Location updated for delivery task with order id: {}", orderId);
