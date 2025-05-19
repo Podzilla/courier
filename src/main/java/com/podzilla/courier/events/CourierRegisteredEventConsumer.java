@@ -18,7 +18,7 @@ public class CourierRegisteredEventConsumer {
 
     @RabbitListener(queues = EventsConstants.COURIER_USER_EVENT_QUEUE)
     public void consumeCourierRegisteredEvent(final BaseEvent event) {
-        if (event instanceof CourierRegisteredEvent courierRegistered) {
+        if (event instanceof CourierRegisteredEvent) {
             CourierRegisteredEvent courierRegisteredEvent = (CourierRegisteredEvent) event;
             CreateCourierRequestDto courier = new CreateCourierRequestDto(
                     courierRegisteredEvent.getCourierId(),
