@@ -1,7 +1,6 @@
 package com.podzilla.courier.controllers;
 
 import com.podzilla.courier.dtos.couriers.CourierResponseDto;
-import com.podzilla.courier.dtos.couriers.CreateCourierRequestDto;
 import com.podzilla.courier.dtos.couriers.UpdateCourierRequestDto;
 import com.podzilla.courier.services.courier.CourierService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -58,19 +56,6 @@ public class CourierController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping
-    @Operation(summary = "Create a new courier",
-            description = "Adds a new courier to the system.")
-    @ApiResponse(responseCode = "200",
-            description = "Courier successfully created")
-    public ResponseEntity<CourierResponseDto> createCourier(
-            @RequestBody(description = "Details of the courier to create")
-            @org.springframework.web.bind.annotation.RequestBody
-            final CreateCourierRequestDto courier) {
-        LOGGER.info("Received request to add courier");
-        return ResponseEntity.ok(courierService.createCourier(courier));
-    }
-
     @PutMapping("/{id}")
     @Operation(summary = "Update a courier",
             description = "Updates details of an existing courier.")
@@ -82,8 +67,7 @@ public class CourierController {
             @Parameter(description = "ID of the courier to update")
             @PathVariable final String id,
             @RequestBody(description = "Updated courier details")
-            @org.springframework.web.bind.annotation.RequestBody
-            final UpdateCourierRequestDto courier) {
+            @org.springframework.web.bind.annotation.RequestBody final UpdateCourierRequestDto courier) {
         LOGGER.info("Received request to update courier with id {}", id);
         return courierService.updateCourier(id, courier)
                 .map(ResponseEntity::ok)
