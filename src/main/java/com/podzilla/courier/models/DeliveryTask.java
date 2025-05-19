@@ -1,6 +1,6 @@
 package com.podzilla.courier.models;
 
-import com.podzilla.mq.events.OrderAssignedToCourierEvent.ConfirmationType;
+import com.podzilla.mq.events.ConfirmationType;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
