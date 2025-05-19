@@ -7,6 +7,8 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class CreateCourierRequestDto {
+    @NotNull(message = "Courier ID is required")
+    private String courierId;
     @NotNull(message = "Name is required")
     private String name;
 
